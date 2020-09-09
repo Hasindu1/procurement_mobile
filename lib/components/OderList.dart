@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/OrderDetails.dart';
 
 class OrderList extends StatefulWidget {
   @override
@@ -31,75 +32,122 @@ class _OrderListState extends State<OrderList> {
       Padding(
         padding: const EdgeInsets.only(left: 200.0),
         child: Column(
-        children: <Widget>[
-          ListTile(
-            title: const Text('Supplier'),
-            leading: Radio(
-              value: SingleCharacter.supplier,
-              groupValue: _character,
-              onChanged: (SingleCharacter value) {
-                setState(() {
-                  _character = value;
-                });
-              },
+          children: <Widget>[
+            ListTile(
+              title: const Text('Supplier'),
+              leading: Radio(
+                value: SingleCharacter.supplier,
+                groupValue: _character,
+                onChanged: (SingleCharacter value) {
+                  setState(() {
+                    _character = value;
+                  });
+                },
+              ),
             ),
-          ),
-          ListTile(
-            title: const Text('Site Manager'),
-            leading: Radio(
-              value: SingleCharacter.sitemanager,
-              groupValue: _character,
-              onChanged: (SingleCharacter value) {
-                setState(() {
-                  _character = value;
-                });
-              },
+            ListTile(
+              title: const Text('Site Manager'),
+              leading: Radio(
+                value: SingleCharacter.sitemanager,
+                groupValue: _character,
+                onChanged: (SingleCharacter value) {
+                  setState(() {
+                    _character = value;
+                  });
+                },
+              ),
             ),
-          ),
-          ListTile(
-            title: const Text('Status'),
-            leading: Radio(
-              value: SingleCharacter.status,
-              groupValue: _character,
-              onChanged: (SingleCharacter value) {
-                setState(() {
-                  _character = value;
-                });
-              },
+            ListTile(
+              title: const Text('Status'),
+              leading: Radio(
+                value: SingleCharacter.status,
+                groupValue: _character,
+                onChanged: (SingleCharacter value) {
+                  setState(() {
+                    _character = value;
+                  });
+                },
+              ),
             ),
-          ),
-        ],
-    ),
+          ],
+        ),
       ),
       SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(columns: [
-            DataColumn(label: Text("Order Reference", style: TextStyle(fontSize: 15.0),)),
-            DataColumn(label: Text("Supplier",style: TextStyle(fontSize: 15.0),)),
-            DataColumn(label: Text("Site Manager",style: TextStyle(fontSize: 15.0),)),
-            DataColumn(label: Text("Order Status",style: TextStyle(fontSize: 15.0),)),
-            DataColumn(label: Text("View Order",style: TextStyle(fontSize: 15.0),)),
+            DataColumn(
+                label: Text(
+              "Order Reference",
+              style: TextStyle(fontSize: 15.0),
+            )),
+            DataColumn(
+                label: Text(
+              "Supplier",
+              style: TextStyle(fontSize: 15.0),
+            )),
+            DataColumn(
+                label: Text(
+              "Site Manager",
+              style: TextStyle(fontSize: 15.0),
+            )),
+            DataColumn(
+                label: Text(
+              "Order Status",
+              style: TextStyle(fontSize: 15.0),
+            )),
+            DataColumn(
+                label: Text(
+              "View Order",
+              style: TextStyle(fontSize: 15.0),
+            )),
           ], rows: [
             DataRow(cells: [
-              DataCell(Text("1",style: TextStyle(fontSize: 15.0),)),
-              DataCell(Text("Atlas",style: TextStyle(fontSize: 15.0),)),
-              DataCell(Text("Pasidu",style: TextStyle(fontSize: 15.0),)),
-              DataCell(Text("New",style: TextStyle(fontSize: 15.0),)),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {}),
+              DataCell(Text(
+                "1",
+                style: TextStyle(fontSize: 15.0),
+              )),
+              DataCell(Text(
+                "Atlas",
+                style: TextStyle(fontSize: 15.0),
+              )),
+              DataCell(Text(
+                "Pasidu",
+                style: TextStyle(fontSize: 15.0),
+              )),
+              DataCell(Text(
+                "New",
+                style: TextStyle(fontSize: 15.0),
+              )),
+              DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => OderDetails(orderId: "1", status: "New",)));
+              }),
             ]),
             DataRow(cells: [
               DataCell(Text("2")),
               DataCell(Text("Atlas")),
               DataCell(Text("Pasidu")),
               DataCell(Text("New")),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {}),
+              DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => OderDetails(orderId: "2", status: "New",)));
+              }),
             ]),
             DataRow(cells: [
               DataCell(Text("3")),
               DataCell(Text("Atlas")),
               DataCell(Text("Pasidu")),
               DataCell(Text("New")),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {}),
+              DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => OderDetails(orderId: "3", status: "New",)));
+              }),
             ])
           ])),
     ]);
