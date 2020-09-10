@@ -115,38 +115,38 @@ class _OrderListState extends State<OrderList> {
                 style: TextStyle(fontSize: 15.0),
               )),
               DataCell(Text(
-                "New",
+                "Rejected",
                 style: TextStyle(fontSize: 15.0),
               )),
               DataCell(Icon(Icons.remove_red_eye), onTap: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "1", status: "New",)));
+                        builder: (context) => OderDetails(orderId: "1", status: "Rejected",)));
               }),
             ]),
             DataRow(cells: [
               DataCell(Text("2")),
               DataCell(Text("Atlas")),
               DataCell(Text("Pasidu")),
-              DataCell(Text("New")),
+              DataCell(Text("Approved")),
               DataCell(Icon(Icons.remove_red_eye), onTap: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "2", status: "New",)));
+                        builder: (context) => OderDetails(orderId: "2", status: "Approved",)));
               }),
             ]),
             DataRow(cells: [
               DataCell(Text("3")),
               DataCell(Text("Atlas")),
               DataCell(Text("Pasidu")),
-              DataCell(Text("New")),
+              DataCell(Text("Pending")),
               DataCell(Icon(Icons.remove_red_eye), onTap: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "3", status: "New",)));
+                        builder: (context) => OderDetails(orderId: "3", status: "Pending",)));
               }),
             ])
           ])),

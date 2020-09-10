@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
-import 'package:procurementapp/components/OderList.dart';
+import 'package:procurementapp/components/NewOrder.dart';
 
-class Home extends StatefulWidget {
+class PurchaseOrder extends StatefulWidget {
   @override
-  _HomeState createState() => _HomeState();
+  _PurchaseOrderState createState() => _PurchaseOrderState();
 }
 
-class _HomeState extends State<Home> {
+class _PurchaseOrderState extends State<PurchaseOrder> {
   @override
   Widget build(BuildContext context) {
-    var scaffold = Scaffold(
+    return Scaffold(
       appBar: appBar,
       drawer: MyDrawer(),
-      body: OrderList(),
+      body: NewOrder()
     );
-    return scaffold;
   }
 }

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/PurchaseOrder.dart';
 
-Drawer get drawer {
-  return Drawer(
+class MyDrawer extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.85,
+      child: Drawer(
         child: ListView(
           children: <Widget>[
             UserAccountsDrawerHeader(
@@ -10,19 +15,30 @@ Drawer get drawer {
               currentAccountPicture: GestureDetector(
                 child: CircleAvatar(
                   backgroundColor: Colors.grey,
-                  child: Icon(Icons.person, color: Colors.white,),
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               decoration: BoxDecoration(color: Colors.blueGrey),
             ),
             InkWell(
-              onTap: (){},
+              onTap: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => PurchaseOrder()));
+              },
               child: ListTile(
                 title: Text("Purchase A Order"),
-                leading: Icon(Icons.add_circle, color: Colors.blueAccent,),
+                leading: Icon(
+                  Icons.add_circle,
+                  color: Colors.blueAccent,
+                ),
               ),
             ),
           ],
         ),
-      );
+      ),
+    );
+  }
 }
