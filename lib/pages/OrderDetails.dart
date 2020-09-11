@@ -54,21 +54,21 @@ class _OderDetailsState extends State<OderDetails> {
                           text: "Order Status: ",
                           style: TextStyle(fontSize: 16.0, color: Colors.black),
                           children: <TextSpan>[
-                          widget.status == 'Approved' ?
-                          TextSpan(
-                            text: widget.status,
-                            style: TextStyle(
-                                color: Colors.greenAccent, fontSize: 16.0))
-                          : widget.status == 'Rejected' ? 
-                          TextSpan(
-                            text: widget.status,
-                            style: TextStyle(
-                                color: Colors.red, fontSize: 16.0))
-                          : 
-                          TextSpan(
-                            text: widget.status,
-                            style: TextStyle(
-                                color: Colors.blueAccent, fontSize: 16.0))
+                        widget.status == 'Approved'
+                            ? TextSpan(
+                                text: widget.status,
+                                style: TextStyle(
+                                    color: Colors.greenAccent, fontSize: 16.0))
+                            : widget.status == 'Rejected'
+                                ? TextSpan(
+                                    text: widget.status,
+                                    style: TextStyle(
+                                        color: Colors.red, fontSize: 16.0))
+                                : TextSpan(
+                                    text: widget.status,
+                                    style: TextStyle(
+                                        color: Colors.blueAccent,
+                                        fontSize: 16.0))
                       ])),
                   SizedBox(
                     height: 50.0,
