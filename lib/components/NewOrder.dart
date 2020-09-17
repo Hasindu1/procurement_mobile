@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:procurementapp/pages/Home.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
 import 'package:procurementapp/util/common.dart';
+import 'package:procurementapp/util/routes.dart';
 import 'package:uuid/uuid.dart';
 
 class NewOrder extends StatefulWidget {
@@ -208,7 +210,7 @@ class _NewOrderState extends State<NewOrder> {
                             onChanged: (String newValue) {
                               setState(() {
                                 dropdownValue = newValue;
-                                orderService.product = newValue;
+                                orderService.product = dropdownValue;
                               });
                             },
                             items: <String>['One', 'Two', 'Free', 'Four']
@@ -535,6 +537,7 @@ class _NewOrderState extends State<NewOrder> {
       await orderService.saveOrder();
       _formKey.currentState.reset();
       orderService.reset();
+      changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order created");
     }
   }
