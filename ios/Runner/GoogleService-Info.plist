@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>548531397302-tg10quh1bo451637p6ri3m3cgdqj957g.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.548531397302-tg10quh1bo451637p6ri3m3cgdqj957g</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAMfTc8yjvhn_D6eRaGRZD6p24_kVGzgM0</string>
+	<key>GCM_SENDER_ID</key>
+	<string>548531397302</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.procurementapp</string>
+	<key>PROJECT_ID</key>
+	<string>procurement-f865c</string>
+	<key>STORAGE_BUCKET</key>
+	<string>procurement-f865c.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:548531397302:ios:c038b92ae8017ed173fc17</string>
+	<key>DATABASE_URL</key>
+	<string>https://procurement-f865c.firebaseio.com</string>
+</dict>
+</plist>

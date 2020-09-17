@@ -1,4 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/service/site.dart';
+import 'package:procurementapp/service/supplier.dart';
+import 'package:procurementapp/util/common.dart';
+import 'package:uuid/uuid.dart';
 
 class NewOrder extends StatefulWidget {
   @override
@@ -6,13 +13,81 @@ class NewOrder extends StatefulWidget {
 }
 
 class _NewOrderState extends State<NewOrder> {
-  String dropdownValue = 'One';
-  DateTime date;
+  // variables
+  var uuid = Uuid().v1();
   final _formKey = GlobalKey<FormState>();
+
+  SupplierService supplierService = SupplierService();
+  SiteService siteService = SiteService();
+  OrderService orderService = OrderService();
+
+  List<DocumentSnapshot> sites = <DocumentSnapshot>[];
+  List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
+  List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
+  List<DropdownMenuItem<String>> supplierDropDown =
+      <DropdownMenuItem<String>>[];
+  String currentSite;
+  String currentSupplier;
+
+  final FocusNode _totalFocus = FocusNode();
+  final FocusNode _unitFocus = FocusNode();
+  final FocusNode _qtyFocus = FocusNode();
+
+  TextEditingController _refeController = TextEditingController();
+  TextEditingController _siteAddressController = TextEditingController();
+  TextEditingController _siteEmailController = TextEditingController();
+  TextEditingController _sitePhoneController = TextEditingController();
+  TextEditingController _qtyController = TextEditingController();
+  TextEditingController _unitController = TextEditingController();
+  TextEditingController _totalController = TextEditingController();
+  String dropdownValue = ONE;
+
+  TextEditingController _supAddressController = TextEditingController();
+  TextEditingController _supEmailController = TextEditingController();
+  TextEditingController _supPhoneController = TextEditingController();
+  TextEditingController _supDescController = TextEditingController();
+  TextEditingController _supCommentController = TextEditingController();
+  DateTime date;
 
   @override
   void initState() {
+    getSuppliers();
+    getSites();
     date = DateTime.now();
+    _refeController.text = uuid.toString();
+    orderService.product = dropdownValue;
+    orderService.id = _refeController.text;
+  }
+
+  // return dropdown with relevant data
+  List<DropdownMenuItem<String>> getSiteDropdown() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (int i = 0; i < sites.length; i++) {
+      setState(() {
+        items.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(sites[i].data['name']),
+              value: sites[i].data['siteId'],
+            ));
+      });
+    }
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> getSupplierDropdown() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (int i = 0; i < suppliers.length; i++) {
+      setState(() {
+        items.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(suppliers[i].data['name']),
+              value: suppliers[i].data['supplierId'],
+            ));
+      });
+    }
+    return items;
   }
 
   @override
@@ -39,6 +114,8 @@ class _NewOrderState extends State<NewOrder> {
                   child: Column(
                     children: <Widget>[
                       TextFormField(
+                          controller: _refeController,
+                          enabled: false,
                           decoration: InputDecoration(
                               labelText: 'Order Refernce',
                               border: OutlineInputBorder(
@@ -58,16 +135,32 @@ class _NewOrderState extends State<NewOrder> {
                           ],
                         ),
                       ),
-                      TextFormField(
-                          decoration: InputDecoration(
-                              labelText: 'Company Name',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Site: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
+                            ),
+                            DropdownButton(
+                              items: sitesDropDown,
+                              onChanged: changeSelectedSite,
+                              value: currentSite,
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
+                          controller: _siteAddressController,
                           keyboardType: TextInputType.streetAddress,
                           decoration: InputDecoration(
                               labelText: 'Address',
@@ -78,6 +171,8 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
+                          controller: _siteEmailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                               labelText: 'Email',
@@ -88,6 +183,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _sitePhoneController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                               labelText: 'Contact No',
@@ -112,6 +208,7 @@ class _NewOrderState extends State<NewOrder> {
                             onChanged: (String newValue) {
                               setState(() {
                                 dropdownValue = newValue;
+                                orderService.product = newValue;
                               });
                             },
                             items: <String>['One', 'Two', 'Free', 'Four']
@@ -128,6 +225,14 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          onChanged: (value) {
+                            orderService.quantity = int.parse(value);
+                          },
+                          focusNode: _qtyFocus,
+                          onFieldSubmitted: (term) {
+                            _fieldFocusChange(context, _qtyFocus, _unitFocus);
+                          },
+                          controller: _qtyController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: 'Quantity',
@@ -138,6 +243,14 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          onChanged: (value) {
+                            orderService.unit = double.parse(value);
+                          },
+                          focusNode: _unitFocus,
+                          controller: _unitController,
+                          onFieldSubmitted: (term) {
+                            _fieldFocusChange(context, _unitFocus, _totalFocus);
+                          },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: 'Unit Price',
@@ -148,6 +261,8 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _totalController,
+                          focusNode: _totalFocus,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: 'Total Price',
@@ -168,16 +283,31 @@ class _NewOrderState extends State<NewOrder> {
                           ],
                         ),
                       ),
-                      TextFormField(
-                          decoration: InputDecoration(
-                              labelText: 'Supplier Name',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Supplier: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
+                            ),
+                            DropdownButton(
+                              items: supplierDropDown,
+                              onChanged: changeSelectedSite,
+                              value: currentSupplier,
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _supAddressController,
                           keyboardType: TextInputType.streetAddress,
                           decoration: InputDecoration(
                               labelText: 'Address',
@@ -188,6 +318,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _supEmailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                               labelText: 'Email',
@@ -198,6 +329,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _supPhoneController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                               labelText: 'Contact No',
@@ -221,11 +353,11 @@ class _NewOrderState extends State<NewOrder> {
                             width: 140.0,
                           ),
                           Text(
-                            date.day.toString() +
+                            orderService.date.day.toString() +
                                 "-" +
-                                date.month.toString() +
+                                orderService.date.month.toString() +
                                 "-" +
-                                date.year.toString(),
+                                orderService.date.year.toString(),
                             style: TextStyle(fontSize: 16.0),
                           ),
                           SizedBox(
@@ -240,12 +372,12 @@ class _NewOrderState extends State<NewOrder> {
                               onPressed: () {
                                 showDatePicker(
                                         context: context,
-                                        initialDate: DateTime.now(),
+                                        initialDate: orderService.date,
                                         firstDate: DateTime(2020),
                                         lastDate: DateTime(2033))
                                     .then((date) {
                                   setState(() {
-                                    date = date;
+                                    orderService.date = date;
                                   });
                                 });
                               })
@@ -255,6 +387,10 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          controller: _supDescController,
+                          onChanged: (value) {
+                            orderService.description = value;
+                          },
                           keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
                               labelText: 'Description',
@@ -265,19 +401,26 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
-                          keyboardType: TextInputType.multiline,
-                          decoration: InputDecoration(
-                              labelText: 'Comment',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
+                        controller: _supCommentController,
+                        keyboardType: TextInputType.multiline,
+                        onChanged: (value) {
+                          orderService.comment = value;
+                        },
+                        decoration: InputDecoration(
+                            labelText: 'Comment',
+                            border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.blueAccent))),
+                      ),
                       Padding(
                         padding: const EdgeInsets.only(left: 10.0, top: 8.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             FlatButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                handleSubmit();
+                              },
                               child: Text(
                                 "Create",
                                 style: TextStyle(color: Colors.white),
@@ -316,5 +459,83 @@ class _NewOrderState extends State<NewOrder> {
         ),
       ),
     );
+  }
+
+  // get data
+  getSuppliers() async {
+    List<DocumentSnapshot> data = await supplierService.getSuppliers();
+    print(data.length);
+    setState(() {
+      suppliers = data;
+      supplierDropDown = getSupplierDropdown();
+      currentSupplier = suppliers[0].data['supplierId'];
+      orderService.supplier = suppliers[0].data['supplierId'];
+      _supAddressController.text = suppliers[0].data['address'];
+      _supEmailController.text = suppliers[0].data['email'];
+      _supPhoneController.text = suppliers[0].data['contact'];
+    });
+  }
+
+  getSites() async {
+    List<DocumentSnapshot> data = await siteService.getSites();
+    print(data.length);
+    setState(() {
+      sites = data;
+      sitesDropDown = getSiteDropdown();
+      currentSite = sites[0].data['siteId'];
+      orderService.site = sites[0].data['siteId'];
+      _siteAddressController.text = sites[0].data['address'];
+      _siteEmailController.text = sites[0].data['email'];
+      _sitePhoneController.text = sites[0].data['contact'];
+    });
+  }
+
+  // change fileds when selection happen
+  changeSelectedSupplier(String selected) {
+    setState(() {
+      currentSupplier = selected;
+      for (var i = 0; i < suppliers.length; i++) {
+        if (suppliers[i].data['supplierId'] == currentSupplier) {
+          orderService.supplier = suppliers[i].data['supplierId'];
+          _supAddressController.text = suppliers[i].data['address'];
+          _supEmailController.text = suppliers[i].data['email'];
+          _supPhoneController.text = suppliers[i].data['contact'];
+        }
+      }
+    });
+  }
+
+  changeSelectedSite(String selected) {
+    setState(() {
+      currentSite = selected;
+      for (var i = 0; i < sites.length; i++) {
+        if (sites[i].data['siteId'] == currentSite) {
+          orderService.site = sites[0].data['siteId'];
+          _siteAddressController.text = sites[i].data['address'];
+          _siteEmailController.text = sites[i].data['email'];
+          _sitePhoneController.text = sites[i].data['contact'];
+        }
+      }
+    });
+  }
+
+  // change node
+  _fieldFocusChange(
+      BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
+    currentFocus.unfocus();
+    setState(() {
+      orderService.total = orderService.quantity * orderService.unit;
+      _totalController.text = orderService.total.toString();
+    });
+    FocusScope.of(context).requestFocus(nextFocus);
+  }
+
+  void handleSubmit() async {
+    if (_formKey.currentState.validate()) {
+      await orderService.saveOrder();
+      _formKey.currentState.reset();
+      orderService.reset();
+      Fluttertoast.showToast(msg: "Order created");
+    }
   }
 }

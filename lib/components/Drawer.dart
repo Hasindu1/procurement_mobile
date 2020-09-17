@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:procurementapp/pages/PurchaseOrder.dart';
+import 'package:procurementapp/util/routes.dart';
 
 class MyDrawer extends StatelessWidget {
   @override
@@ -25,8 +26,7 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => PurchaseOrder()));
+                changeScreen(context, PurchaseOrder());
               },
               child: ListTile(
                 title: Text("Purchase A Order"),
