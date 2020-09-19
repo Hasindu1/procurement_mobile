@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:procurementapp/pages/OrderDetails.dart';
 import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/service/site.dart';
 
 class OrderList extends StatefulWidget {
   @override
@@ -13,6 +13,7 @@ enum SingleCharacter { supplier, sitemanager, status }
 class _OrderListState extends State<OrderList> {
   SingleCharacter _character = SingleCharacter.supplier;
   OrderService orderService = new OrderService();
+  SiteService siteService = new SiteService();
   List<DocumentSnapshot> orders = <DocumentSnapshot>[];
   DocumentSnapshot supplier;
 

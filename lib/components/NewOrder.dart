@@ -70,7 +70,7 @@ class _NewOrderState extends State<NewOrder> {
             0,
             DropdownMenuItem(
               child: Text(sites[i].data['name']),
-              value: sites[i].data['siteId'],
+              value: sites[i].data['name'],
             ));
       });
     }
@@ -85,7 +85,7 @@ class _NewOrderState extends State<NewOrder> {
             0,
             DropdownMenuItem(
               child: Text(suppliers[i].data['name']),
-              value: suppliers[i].data['supplierId'],
+              value: suppliers[i].data['name'],
             ));
       });
     }
@@ -235,6 +235,10 @@ class _NewOrderState extends State<NewOrder> {
                             _fieldFocusChange(context, _qtyFocus, _unitFocus);
                           },
                           controller: _qtyController,
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'Enter quantity';
+                          },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                               labelText: 'Quantity',
@@ -252,6 +256,10 @@ class _NewOrderState extends State<NewOrder> {
                           controller: _unitController,
                           onFieldSubmitted: (term) {
                             _fieldFocusChange(context, _unitFocus, _totalFocus);
+                          },
+                          validator: (value) {
+                            if (value.isEmpty)
+                              return 'Enter unit price';
                           },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -469,8 +477,8 @@ class _NewOrderState extends State<NewOrder> {
     setState(() {
       suppliers = data;
       supplierDropDown = getSupplierDropdown();
-      currentSupplier = suppliers[0].data['supplierId'];
-      orderService.supplier = suppliers[0].data['supplierId'];
+      currentSupplier = suppliers[0].data['name'];
+      orderService.supplier = suppliers[0].data['name'];
       _supAddressController.text = suppliers[0].data['address'];
       _supEmailController.text = suppliers[0].data['email'];
       _supPhoneController.text = suppliers[0].data['contact'];
@@ -482,12 +490,13 @@ class _NewOrderState extends State<NewOrder> {
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
-      currentSite = sites[0].data['siteId'];
-      orderService.site = sites[0].data['siteId'];
+      currentSite = sites[0].data['name'];
+      orderService.site = sites[0].data['name'];
       _siteAddressController.text = sites[0].data['address'];
       _siteEmailController.text = sites[0].data['email'];
       _sitePhoneController.text = sites[0].data['contact'];
     });
+
   }
 
   // change fields when selection happen
@@ -495,8 +504,8 @@ class _NewOrderState extends State<NewOrder> {
     setState(() {
       currentSupplier = selected;
       for (var i = 0; i < suppliers.length; i++) {
-        if (suppliers[i].data['supplierId'] == currentSupplier) {
-          orderService.supplier = suppliers[i].data['supplierId'];
+        if (suppliers[i].data['name'] == currentSupplier) {
+          orderService.supplier = suppliers[i].data['name'];
           _supAddressController.text = suppliers[i].data['address'];
           _supEmailController.text = suppliers[i].data['email'];
           _supPhoneController.text = suppliers[i].data['contact'];
@@ -509,8 +518,8 @@ class _NewOrderState extends State<NewOrder> {
     setState(() {
       currentSite = selected;
       for (var i = 0; i < sites.length; i++) {
-        if (sites[i].data['siteId'] == currentSite) {
-          orderService.site = sites[0].data['siteId'];
+        if (sites[i].data['name'] == currentSite) {
+          orderService.site = sites[0].data['name'];
           _siteAddressController.text = sites[i].data['address'];
           _siteEmailController.text = sites[i].data['email'];
           _sitePhoneController.text = sites[i].data['contact'];

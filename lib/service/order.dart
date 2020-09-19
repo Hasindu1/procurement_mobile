@@ -110,5 +110,4 @@ class OrderService {
       return snaps.documents;
     });
   }
-
 }
