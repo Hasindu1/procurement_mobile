@@ -103,4 +103,12 @@ class OrderService {
     this.date = DateTime.now();
     this.comment = '';
   }
+
+  // retrieve data
+  Future<List<DocumentSnapshot>> getOrders() async {
+    return await _db.collection("orders").getDocuments().then((snaps) {
+      return snaps.documents;
+    });
+  }
+
 }

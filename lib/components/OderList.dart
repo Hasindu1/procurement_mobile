@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:procurementapp/pages/OrderDetails.dart';
+import 'package:procurementapp/service/order.dart';
 
 class OrderList extends StatefulWidget {
   @override
@@ -10,6 +12,16 @@ enum SingleCharacter { supplier, sitemanager, status }
 
 class _OrderListState extends State<OrderList> {
   SingleCharacter _character = SingleCharacter.supplier;
+  OrderService orderService = new OrderService();
+  List<DocumentSnapshot> orders = <DocumentSnapshot>[];
+  DocumentSnapshot supplier;
+
+  final db = Firestore.instance;
+
+  @override
+  void initState() {
+    getOrders();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,82 +86,50 @@ class _OrderListState extends State<OrderList> {
       ),
       SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: DataTable(columns: [
-            DataColumn(
-                label: Text(
-              "Order Reference",
-              style: TextStyle(fontSize: 15.0),
-            )),
-            DataColumn(
-                label: Text(
-              "Supplier",
-              style: TextStyle(fontSize: 15.0),
-            )),
-            DataColumn(
-                label: Text(
-              "Site Manager",
-              style: TextStyle(fontSize: 15.0),
-            )),
-            DataColumn(
-                label: Text(
-              "Order Status",
-              style: TextStyle(fontSize: 15.0),
-            )),
-            DataColumn(
-                label: Text(
-              "View Order",
-              style: TextStyle(fontSize: 15.0),
-            )),
-          ], rows: [
-            DataRow(cells: [
-              DataCell(Text(
-                "1",
+          child: DataTable(
+            columns: [
+              DataColumn(
+                  label: Text(
+                "Order Reference",
                 style: TextStyle(fontSize: 15.0),
               )),
-              DataCell(Text(
-                "Atlas",
+              DataColumn(
+                  label: Text(
+                "Supplier",
                 style: TextStyle(fontSize: 15.0),
               )),
-              DataCell(Text(
-                "Pasidu",
+              DataColumn(
+                  label: Text(
+                "Site Manager",
                 style: TextStyle(fontSize: 15.0),
               )),
-              DataCell(Text(
-                "Rejected",
-                style: TextStyle(fontSize: 15.0),
-              )),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "1", status: "Rejected",)));
-              }),
-            ]),
-            DataRow(cells: [
-              DataCell(Text("2")),
-              DataCell(Text("Atlas")),
-              DataCell(Text("Pasidu")),
-              DataCell(Text("Approved")),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "2", status: "Approved",)));
-              }),
-            ]),
-            DataRow(cells: [
-              DataCell(Text("3")),
-              DataCell(Text("Atlas")),
-              DataCell(Text("Pasidu")),
-              DataCell(Text("Pending")),
-              DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => OderDetails(orderId: "3", status: "Pending",)));
-              }),
-            ])
-          ])),
+              // DataColumn(
+              //     label: Text(
+              //   "Order Status",
+              //   style: TextStyle(fontSize: 15.0),
+              // )),
+              // DataColumn(
+              //     label: Text(
+              //   "View Order",
+              //   style: TextStyle(fontSize: 15.0),
+              // )),
+            ],
+            rows: orders
+                .map((order) => DataRow(cells: [
+                      DataCell(Text(order.data['id'])),
+                      DataCell(Text(order.data['supplier'])),
+                      DataCell(Text(order.data['site']))
+                    ]))
+                .toList(),
+          )),
     ]);
+  }
+
+  void getOrders() async {
+    List<DocumentSnapshot> data = await orderService.getOrders();
+    print(data.length);
+    setState(() {
+      orders = data;
+    });
   }
 }

@@ -466,7 +466,6 @@ class _NewOrderState extends State<NewOrder> {
   // get data
   getSuppliers() async {
     List<DocumentSnapshot> data = await supplierService.getSuppliers();
-    print(data.length);
     setState(() {
       suppliers = data;
       supplierDropDown = getSupplierDropdown();
@@ -480,7 +479,6 @@ class _NewOrderState extends State<NewOrder> {
 
   getSites() async {
     List<DocumentSnapshot> data = await siteService.getSites();
-    print(data.length);
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
@@ -492,7 +490,7 @@ class _NewOrderState extends State<NewOrder> {
     });
   }
 
-  // change fileds when selection happen
+  // change fields when selection happen
   changeSelectedSupplier(String selected) {
     setState(() {
       currentSupplier = selected;
