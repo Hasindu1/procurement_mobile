@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/OrderDetails.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
+import 'package:procurementapp/util/routes.dart';
 
 class OrderList extends StatefulWidget {
   @override
@@ -104,22 +106,38 @@ class _OrderListState extends State<OrderList> {
                 "Site Manager",
                 style: TextStyle(fontSize: 15.0),
               )),
-              // DataColumn(
-              //     label: Text(
-              //   "Order Status",
-              //   style: TextStyle(fontSize: 15.0),
-              // )),
-              // DataColumn(
-              //     label: Text(
-              //   "View Order",
-              //   style: TextStyle(fontSize: 15.0),
-              // )),
+              DataColumn(
+                  label: Text(
+                "Order Status",
+                style: TextStyle(fontSize: 15.0),
+              )),
+              DataColumn(
+                  label: Text(
+                "View Order",
+                style: TextStyle(fontSize: 15.0),
+              )),
             ],
             rows: orders
                 .map((order) => DataRow(cells: [
                       DataCell(Text(order.data['id'])),
                       DataCell(Text(order.data['supplier'])),
-                      DataCell(Text(order.data['site']))
+                      DataCell(Text(order.data['site'])),
+                      DataCell(Text(order.data['status'])),
+                      DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                        changeScreen(
+                            context,
+                            OderDetails(
+                              orderId: order.data['id'],
+                              site: order.data['site'],
+                              supplier: order.data['supplier'],
+                              status: order.data['status'],
+                              product: order.data['product'],
+                              quantity: order.data['quantity'],
+                              unit: order.data['unit'],
+                              total: order.data['total'],
+                              rDate: order.data['date'].toDate(),
+                            ));
+                      }),
                     ]))
                 .toList(),
           )),
@@ -128,7 +146,6 @@ class _OrderListState extends State<OrderList> {
 
   void getOrders() async {
     List<DocumentSnapshot> data = await orderService.getOrders();
-    print(data.length);
     setState(() {
       orders = data;
     });

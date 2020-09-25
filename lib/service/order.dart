@@ -12,6 +12,7 @@ class OrderService {
   DateTime _date = DateTime.now();
   String _description;
   String _comment;
+  String _status;
 
   // getters setters
   String get id => _id;
@@ -74,6 +75,12 @@ class OrderService {
     _comment = value;
   }
 
+  String get status => _status;
+
+  set status(String value) {
+    _status = value;
+  }
+
   // save order
   saveOrder() async {
     await _db.collection("orders").document(id).setData({
@@ -86,7 +93,8 @@ class OrderService {
       "total": this.total,
       "date": this.date,
       "description": this.description,
-      "comment": this.comment
+      "comment": this.comment,
+      "status": this.status
     });
   }
 
@@ -109,5 +117,23 @@ class OrderService {
     return await _db.collection("orders").getDocuments().then((snaps) {
       return snaps.documents;
     });
+  }
+
+  // update data
+  void update() async {
+    await _db.collection("orders").document(this._id).updateData({
+      "site": this.site,
+      "supplier": this.supplier,
+      "product": this.product,
+      "quantity": this.quantity,
+      "unit": this.unit,
+      "total": this.total,
+      "date": this.date
+    });
+  }
+
+  // delete data
+  void delete() async {
+    await _db.collection("orders").document(this._id).delete();
   }
 }

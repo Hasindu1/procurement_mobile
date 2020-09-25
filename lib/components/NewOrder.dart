@@ -185,6 +185,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
                           controller: _sitePhoneController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
@@ -236,8 +237,7 @@ class _NewOrderState extends State<NewOrder> {
                           },
                           controller: _qtyController,
                           validator: (value) {
-                            if (value.isEmpty)
-                              return 'Enter quantity';
+                            if (value.isEmpty) return 'Enter quantity';
                           },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -258,8 +258,7 @@ class _NewOrderState extends State<NewOrder> {
                             _fieldFocusChange(context, _unitFocus, _totalFocus);
                           },
                           validator: (value) {
-                            if (value.isEmpty)
-                              return 'Enter unit price';
+                            if (value.isEmpty) return 'Enter unit price';
                           },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -271,6 +270,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
                           controller: _totalController,
                           focusNode: _totalFocus,
                           keyboardType: TextInputType.number,
@@ -317,6 +317,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
                           controller: _supAddressController,
                           keyboardType: TextInputType.streetAddress,
                           decoration: InputDecoration(
@@ -328,6 +329,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
                           controller: _supEmailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
@@ -339,6 +341,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
+                          enabled: false,
                           controller: _supPhoneController,
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
@@ -496,7 +499,6 @@ class _NewOrderState extends State<NewOrder> {
       _siteEmailController.text = sites[0].data['email'];
       _sitePhoneController.text = sites[0].data['contact'];
     });
-
   }
 
   // change fields when selection happen
@@ -541,6 +543,7 @@ class _NewOrderState extends State<NewOrder> {
 
   void handleSubmit() async {
     if (_formKey.currentState.validate()) {
+      orderService.status = 'Pending';
       await orderService.saveOrder();
       _formKey.currentState.reset();
       orderService.reset();
