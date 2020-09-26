@@ -444,7 +444,9 @@ class _NewOrderState extends State<NewOrder> {
                               width: 5.0,
                             ),
                             FlatButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                handleSave();
+                              },
                               child: Text(
                                 "Save",
                                 style: TextStyle(color: Colors.white),
@@ -544,11 +546,22 @@ class _NewOrderState extends State<NewOrder> {
   void handleSubmit() async {
     if (_formKey.currentState.validate()) {
       orderService.status = 'Pending';
-      await orderService.saveOrder();
+      await orderService.createOrder();
       _formKey.currentState.reset();
       orderService.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order created");
+    }
+  }
+
+  void handleSave() async {
+    if (_formKey.currentState.validate()) {
+      orderService.status = 'Pending';
+      await orderService.saveOrder();
+      _formKey.currentState.reset();
+      orderService.reset();
+      changeScreenReplacement(context, Home());
+      Fluttertoast.showToast(msg: "Order saved");
     }
   }
 }

@@ -80,6 +80,24 @@ class OrderService {
   set status(String value) {
     _status = value;
   }
+  
+  // create order
+  createOrder() async {
+    await _db.collection("orders").document(id).setData({
+      "id": this.id,
+      "site": this.site,
+      "supplier": this.supplier,
+      "product": this.product,
+      "quantity": this.quantity,
+      "unit": this.unit,
+      "total": this.total,
+      "date": this.date,
+      "description": this.description,
+      "comment": this.comment,
+      "status": this.status,
+      "draft": "false"
+    });
+  }
 
   // save order
   saveOrder() async {
@@ -94,7 +112,8 @@ class OrderService {
       "date": this.date,
       "description": this.description,
       "comment": this.comment,
-      "status": this.status
+      "status": this.status,
+      "draft": "true"
     });
   }
 
@@ -114,7 +133,13 @@ class OrderService {
 
   // retrieve data
   Future<List<DocumentSnapshot>> getOrders() async {
-    return await _db.collection("orders").getDocuments().then((snaps) {
+    return await _db.collection("orders").where("draft", isEqualTo: "false").getDocuments().then((snaps) {
+      return snaps.documents;
+    });
+  }
+
+  Future<List<DocumentSnapshot>> getDrafts() async {
+    return await _db.collection("orders").where("draft", isEqualTo: "true").getDocuments().then((snaps) {
       return snaps.documents;
     });
   }
