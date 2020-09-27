@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/Draft.dart';
 import 'package:procurementapp/pages/PurchaseOrder.dart';
 import 'package:procurementapp/util/routes.dart';
 
@@ -32,6 +33,18 @@ class MyDrawer extends StatelessWidget {
                 title: Text("Purchase A Order"),
                 leading: Icon(
                   Icons.add_circle,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                changeScreen(context, Draft());
+              },
+              child: ListTile(
+                title: Text("Drafts"),
+                leading: Icon(
+                  Icons.drafts,
                   color: Colors.blueAccent,
                 ),
               ),

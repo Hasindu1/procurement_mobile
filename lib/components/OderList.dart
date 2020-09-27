@@ -17,7 +17,6 @@ class _OrderListState extends State<OrderList> {
   OrderService orderService = new OrderService();
   SiteService siteService = new SiteService();
   List<DocumentSnapshot> orders = <DocumentSnapshot>[];
-  DocumentSnapshot supplier;
 
   final db = Firestore.instance;
 
@@ -88,59 +87,62 @@ class _OrderListState extends State<OrderList> {
         ),
       ),
       SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columns: [
-              DataColumn(
-                  label: Text(
-                "Order Reference",
-                style: TextStyle(fontSize: 15.0),
-              )),
-              DataColumn(
-                  label: Text(
-                "Supplier",
-                style: TextStyle(fontSize: 15.0),
-              )),
-              DataColumn(
-                  label: Text(
-                "Site Manager",
-                style: TextStyle(fontSize: 15.0),
-              )),
-              DataColumn(
-                  label: Text(
-                "Order Status",
-                style: TextStyle(fontSize: 15.0),
-              )),
-              DataColumn(
-                  label: Text(
-                "View Order",
-                style: TextStyle(fontSize: 15.0),
-              )),
-            ],
-            rows: orders
-                .map((order) => DataRow(cells: [
-                      DataCell(Text(order.data['id'])),
-                      DataCell(Text(order.data['supplier'])),
-                      DataCell(Text(order.data['site'])),
-                      DataCell(Text(order.data['status'])),
-                      DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                        changeScreen(
-                            context,
-                            OderDetails(
-                              orderId: order.data['id'],
-                              site: order.data['site'],
-                              supplier: order.data['supplier'],
-                              status: order.data['status'],
-                              product: order.data['product'],
-                              quantity: order.data['quantity'],
-                              unit: order.data['unit'],
-                              total: order.data['total'],
-                              rDate: order.data['date'].toDate(),
-                            ));
-                      }),
-                    ]))
-                .toList(),
-          )),
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columns: [
+                DataColumn(
+                    label: Text(
+                  "Order Reference",
+                  style: TextStyle(fontSize: 15.0),
+                )),
+                DataColumn(
+                    label: Text(
+                  "Supplier",
+                  style: TextStyle(fontSize: 15.0),
+                )),
+                DataColumn(
+                    label: Text(
+                  "Site Manager",
+                  style: TextStyle(fontSize: 15.0),
+                )),
+                DataColumn(
+                    label: Text(
+                  "Order Status",
+                  style: TextStyle(fontSize: 15.0),
+                )),
+                DataColumn(
+                    label: Text(
+                  "View Order",
+                  style: TextStyle(fontSize: 15.0),
+                )),
+              ],
+              rows: orders
+                  .map((order) => DataRow(cells: [
+                        DataCell(Text(order.data['id'])),
+                        DataCell(Text(order.data['supplier'])),
+                        DataCell(Text(order.data['site'])),
+                        DataCell(Text(order.data['status'])),
+                        DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                          changeScreen(
+                              context,
+                              OderDetails(
+                                orderId: order.data['id'],
+                                site: order.data['site'],
+                                supplier: order.data['supplier'],
+                                status: order.data['status'],
+                                product: order.data['product'],
+                                quantity: order.data['quantity'],
+                                unit: order.data['unit'],
+                                total: order.data['total'],
+                                rDate: order.data['date'].toDate(),
+                              ));
+                        }),
+                      ]))
+                  .toList(),
+            )),
+      ),
     ]);
   }
 
