@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:procurementapp/pages/OrderDetails.dart';
@@ -10,13 +12,30 @@ class OrderList extends StatefulWidget {
   _OrderListState createState() => _OrderListState();
 }
 
-enum SingleCharacter { supplier, sitemanager, status }
+enum SingleCharacter { supplier, site, status }
+
+class Debouncer {
+  final int milliseconds;
+  VoidCallback action;
+  Timer _timer;
+
+  Debouncer({this.milliseconds});
+
+  run(VoidCallback action) {
+    if (null != _timer) {
+      _timer.cancel();
+    }
+    _timer = Timer(Duration(milliseconds: milliseconds), action);
+  }
+}
 
 class _OrderListState extends State<OrderList> {
   SingleCharacter _character = SingleCharacter.supplier;
   OrderService orderService = new OrderService();
   SiteService siteService = new SiteService();
   List<DocumentSnapshot> orders = <DocumentSnapshot>[];
+  List<DocumentSnapshot> filteredOrders = <DocumentSnapshot>[];
+  final _debouncer = Debouncer(milliseconds: 500);
 
   final db = Firestore.instance;
 
@@ -42,6 +61,25 @@ class _OrderListState extends State<OrderList> {
             border: OutlineInputBorder(
                 borderSide:
                     BorderSide(color: Colors.amber, style: BorderStyle.solid))),
+        onChanged: (string) {
+          _debouncer.run(() {
+            setState(() {
+              if (_character == SingleCharacter.supplier) {
+                filteredOrders = orders
+                    .where((o) => o.data["supplier"].contains((string)))
+                    .toList();
+              }else if (_character == SingleCharacter.site) {
+                filteredOrders = orders
+                    .where((o) => o.data["site"].contains((string)))
+                    .toList();
+              }else if (_character == SingleCharacter.status) {
+                filteredOrders = orders
+                    .where((o) => o.data["status"].contains((string)))
+                    .toList();
+              }
+            });
+          });
+        },
       ),
       Padding(
         padding: const EdgeInsets.only(left: 200.0),
@@ -62,7 +100,7 @@ class _OrderListState extends State<OrderList> {
             ListTile(
               title: const Text('Site Manager'),
               leading: Radio(
-                value: SingleCharacter.sitemanager,
+                value: SingleCharacter.site,
                 groupValue: _character,
                 onChanged: (SingleCharacter value) {
                   setState(() {
@@ -118,7 +156,7 @@ class _OrderListState extends State<OrderList> {
                   style: TextStyle(fontSize: 15.0),
                 )),
               ],
-              rows: orders
+              rows: filteredOrders
                   .map((order) => DataRow(cells: [
                         DataCell(Text(order.data['id'])),
                         DataCell(Text(order.data['supplier'])),
@@ -150,6 +188,7 @@ class _OrderListState extends State<OrderList> {
     List<DocumentSnapshot> data = await orderService.getOrders();
     setState(() {
       orders = data;
+      filteredOrders = orders;
     });
   }
 }
