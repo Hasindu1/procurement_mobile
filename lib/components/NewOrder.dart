@@ -307,7 +307,7 @@ class _NewOrderState extends State<NewOrder> {
                             ),
                             DropdownButton(
                               items: supplierDropDown,
-                              onChanged: changeSelectedSite,
+                              onChanged: changeSelectedSupplier,
                               value: currentSupplier,
                             ),
                           ],
