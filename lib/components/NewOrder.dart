@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:procurementapp/pages/Home.dart';
+import 'package:procurementapp/service/item.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
@@ -22,14 +23,18 @@ class _NewOrderState extends State<NewOrder> {
   SupplierService supplierService = SupplierService();
   SiteService siteService = SiteService();
   OrderService orderService = OrderService();
+  ItemService itemService = ItemService();
 
   List<DocumentSnapshot> sites = <DocumentSnapshot>[];
   List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
+  List<DocumentSnapshot> items = <DocumentSnapshot>[];
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
+  List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
   String currentSite;
   String currentSupplier;
+  String currentItem;
 
   final FocusNode _totalFocus = FocusNode();
   final FocusNode _unitFocus = FocusNode();
@@ -55,6 +60,7 @@ class _NewOrderState extends State<NewOrder> {
   void initState() {
     getSuppliers();
     getSites();
+    getItems();
     date = DateTime.now();
     _refeController.text = uuid.toString();
     orderService.product = dropdownValue;
@@ -90,6 +96,21 @@ class _NewOrderState extends State<NewOrder> {
       });
     }
     return items;
+  }
+
+  List<DropdownMenuItem<String>> getItemsDropdown() {
+    List<DropdownMenuItem<String>> list = new List();
+    for (int i = 0; i < items.length; i++) {
+      setState(() {
+        list.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(items[i].data['name']),
+              value: items[i].data['name'],
+            ));
+      });
+    }
+    return list;
   }
 
   @override
@@ -197,88 +218,25 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 12.0),
-                        child: Row(children: <Widget>[
-                          DropdownButton<String>(
-                            value: dropdownValue,
-                            iconSize: 24,
-                            style: TextStyle(color: Colors.grey[700]),
-                            elevation: 16,
-                            underline: Container(
-                              height: 2,
-                              color: Colors.grey[400],
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Site: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
                             ),
-                            onChanged: (String newValue) {
-                              setState(() {
-                                dropdownValue = newValue;
-                                orderService.product = dropdownValue;
-                              });
-                            },
-                            items: <String>['One', 'Two', 'Free', 'Four']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ]),
+                            DropdownButton(
+                              items: itemsDropDown,
+                              onChanged: changeSelectedItem,
+                              value: currentItem,
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      TextFormField(
-                          onChanged: (value) {
-                            orderService.quantity = int.parse(value);
-                          },
-                          focusNode: _qtyFocus,
-                          onFieldSubmitted: (term) {
-                            _fieldFocusChange(context, _qtyFocus, _unitFocus);
-                          },
-                          controller: _qtyController,
-                          validator: (value) {
-                            if (value.isEmpty) return 'Enter quantity';
-                          },
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: 'Quantity',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      TextFormField(
-                          onChanged: (value) {
-                            orderService.unit = double.parse(value);
-                          },
-                          focusNode: _unitFocus,
-                          controller: _unitController,
-                          onFieldSubmitted: (term) {
-                            _fieldFocusChange(context, _unitFocus, _totalFocus);
-                          },
-                          validator: (value) {
-                            if (value.isEmpty) return 'Enter unit price';
-                          },
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: 'Unit Price',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
-                      SizedBox(
-                        height: 10.0,
-                      ),
-                      TextFormField(
-                          enabled: false,
-                          controller: _totalController,
-                          focusNode: _totalFocus,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              labelText: 'Total Price',
-                              border: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.blueAccent)))),
                       SizedBox(
                         height: 50.0,
                       ),
@@ -346,6 +304,73 @@ class _NewOrderState extends State<NewOrder> {
                           keyboardType: TextInputType.phone,
                           decoration: InputDecoration(
                               labelText: 'Contact No',
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.blueAccent)))),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Item: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
+                            ),
+                            DropdownButton(
+                              items: itemsDropDown,
+                              onChanged: changeSelectedItem,
+                              value: currentItem,
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextFormField(
+                          onChanged: (value) {
+                            orderService.quantity = int.parse(value);
+                          },
+                          focusNode: _qtyFocus,
+                          onFieldSubmitted: (term) {
+                            _fieldFocusChange(context, _qtyFocus, _totalFocus);
+                          },
+                          controller: _qtyController,
+                          validator: (value) {
+                            if (value.isEmpty) return 'Enter quantity';
+                          },
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                              labelText: 'Quantity',
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.blueAccent)))),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      TextFormField(
+                          enabled: false,
+                          focusNode: _unitFocus,
+                          controller: _unitController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                              labelText: 'Unit Price',
+                              border: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.blueAccent)))),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      TextFormField(
+                          enabled: false,
+                          controller: _totalController,
+                          focusNode: _totalFocus,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                              labelText: 'Total Price',
                               border: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.blueAccent)))),
@@ -503,6 +528,18 @@ class _NewOrderState extends State<NewOrder> {
     });
   }
 
+  getItems() async {
+    List<DocumentSnapshot> data = await itemService.getItems();
+
+    setState(() {
+      items = data;
+      itemsDropDown = getItemsDropdown();
+      currentItem = items[0].data['name'];
+      _unitController.text = items[0].data['unit_price'].toString();
+      orderService.unit = items[0].data['unit_price'];
+    });
+  }
+
   // change fields when selection happen
   changeSelectedSupplier(String selected) {
     setState(() {
@@ -532,12 +569,25 @@ class _NewOrderState extends State<NewOrder> {
     });
   }
 
+  changeSelectedItem(String selected) {
+    setState(() {
+      currentItem = selected;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].data['name'] == currentItem) {
+          _unitController.text = items[i].data['unit_price'].toString();
+          orderService.unit = items[i].data['unit_price'];
+        }
+      }
+    });
+  }
+
   // change node
   _fieldFocusChange(
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      orderService.total = orderService.quantity * orderService.unit;
+      orderService.total =
+          orderService.quantity * double.parse(_unitController.text);
       _totalController.text = orderService.total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);

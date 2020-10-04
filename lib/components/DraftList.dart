@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:procurementapp/components/Draft_detail.dart';
 import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/util/routes.dart';
 
 class DraftList extends StatefulWidget {
   @override
@@ -30,12 +32,22 @@ class _DraftListState extends State<DraftList> {
               DataColumn(label: Text("Site Manager")),
               DataColumn(label: Text("View Order"))
             ],
-            rows: drafts.map((draft) => DataRow(cells: [
-                  DataCell(Text(draft.data['id'])),
-                  DataCell(Text(draft.data['supplier'])),
-                  DataCell(Text(draft.data['site'])),
-                  DataCell(Icon(Icons.remove_red_eye))
-                ])).toList()),
+            rows: drafts
+                .map((draft) => DataRow(cells: [
+                      DataCell(Text(draft.data['id'])),
+                      DataCell(Text(draft.data['supplier'])),
+                      DataCell(Text(draft.data['site'])),
+                      DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                        changeScreenReplacement(
+                            context,
+                            DraftDetails(
+                              orderId: draft.data['id'],
+                              supplier: draft.data['supplier'],
+                              site: draft.data['site'],
+                            ));
+                      })
+                    ]))
+                .toList()),
       ),
     ));
   }
