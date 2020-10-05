@@ -13,6 +13,7 @@ class OrderService {
   String _description;
   String _comment;
   String _status;
+  String _remarks;
 
   // getters setters
   String get id => _id;
@@ -80,7 +81,11 @@ class OrderService {
   set status(String value) {
     _status = value;
   }
-  
+
+  String get remarks => _remarks;
+
+  set remarks(String value) => _remarks = value;
+
   // create order
   createOrder() async {
     await _db.collection("orders").document(id).setData({
@@ -95,7 +100,8 @@ class OrderService {
       "description": this.description,
       "comment": this.comment,
       "status": this.status,
-      "draft": "false"
+      "draft": "false",
+      "remarks": this.remarks
     });
   }
 
@@ -113,7 +119,8 @@ class OrderService {
       "description": this.description,
       "comment": this.comment,
       "status": this.status,
-      "draft": "true"
+      "draft": "true",
+      "remarks": this.remarks
     });
   }
 
@@ -133,13 +140,21 @@ class OrderService {
 
   // retrieve data
   Future<List<DocumentSnapshot>> getOrders() async {
-    return await _db.collection("orders").where("draft", isEqualTo: "false").getDocuments().then((snaps) {
+    return await _db
+        .collection("orders")
+        .where("draft", isEqualTo: "false")
+        .getDocuments()
+        .then((snaps) {
       return snaps.documents;
     });
   }
 
   Future<List<DocumentSnapshot>> getDrafts() async {
-    return await _db.collection("orders").where("draft", isEqualTo: "true").getDocuments().then((snaps) {
+    return await _db
+        .collection("orders")
+        .where("draft", isEqualTo: "true")
+        .getDocuments()
+        .then((snaps) {
       return snaps.documents;
     });
   }

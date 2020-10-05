@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
 import 'package:procurementapp/pages/Home.dart';
+import 'package:procurementapp/service/item.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
@@ -19,6 +20,7 @@ class OderDetails extends StatefulWidget {
   final double unit;
   final double total;
   final DateTime rDate;
+  final String description;
 
   OderDetails(
       {this.orderId,
@@ -29,7 +31,8 @@ class OderDetails extends StatefulWidget {
       this.quantity,
       this.unit,
       this.total,
-      this.rDate});
+      this.rDate,
+      this.description});
 
   @override
   _OderDetailsState createState() => _OderDetailsState();
@@ -39,9 +42,11 @@ class _OderDetailsState extends State<OderDetails> {
   SiteService siteService = new SiteService();
   SupplierService supplierService = new SupplierService();
   OrderService orderService = new OrderService();
+  ItemService itemService = new ItemService();
 
   List<DocumentSnapshot> sites = <DocumentSnapshot>[];
   List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
+  List<DocumentSnapshot> items = <DocumentSnapshot>[];
 
   TextEditingController _siteAddressController = TextEditingController();
   TextEditingController _siteEmailController = TextEditingController();
@@ -54,12 +59,15 @@ class _OderDetailsState extends State<OderDetails> {
   TextEditingController _supAddressController = TextEditingController();
   TextEditingController _supEmailController = TextEditingController();
   TextEditingController _supPhoneController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
 
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
+  List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
   String currentSite;
   String currentSupplier;
+  String currentItem;
 
   final _formKey = GlobalKey<FormState>();
   String _supplierId;
@@ -70,11 +78,11 @@ class _OderDetailsState extends State<OderDetails> {
   bool calVisibility = false;
 
   final FocusNode _totalFocus = FocusNode();
-  final FocusNode _unitFocus = FocusNode();
   final FocusNode _qtyFocus = FocusNode();
 
   @override
   void initState() {
+    super.initState();
     orderService.id = widget.orderId;
     orderService.site = widget.site;
     orderService.supplier = widget.supplier;
@@ -83,17 +91,19 @@ class _OderDetailsState extends State<OderDetails> {
     orderService.unit = widget.unit;
     orderService.total = widget.total;
     orderService.date = widget.rDate;
+    orderService.description = widget.description;
 
     _qtyController.text = widget.quantity.toString();
     _unitController.text = widget.unit.toString();
     _totalController.text = widget.total.toString();
+    _descriptionController.text = widget.description;
 
     getSites();
     getSuppliers();
+    getItems();
     if (widget.status == 'Pending') {
       calVisibility = true;
     }
-    dropdownValue = widget.product;
   }
 
   // return dropdown with relevant data
@@ -125,6 +135,21 @@ class _OderDetailsState extends State<OderDetails> {
       });
     }
     return items;
+  }
+
+  List<DropdownMenuItem<String>> getItemDropdown() {
+    List<DropdownMenuItem<String>> list = new List();
+    for (int i = 0; i < items.length; i++) {
+      setState(() {
+        list.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(items[i].data['name']),
+              value: items[i].data['name'],
+            ));
+      });
+    }
+    return list;
   }
 
   @override
@@ -254,41 +279,27 @@ class _OderDetailsState extends State<OderDetails> {
                                     BorderSide(color: Colors.blueAccent))),
                       ),
                       SizedBox(
-                        height: 50.0,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 12.0),
-                        child: Row(children: <Widget>[
-                          DropdownButton<String>(
-                            value: dropdownValue,
-                            iconSize: 24,
-                            style: TextStyle(color: Colors.grey[700]),
-                            elevation: 16,
-                            underline: Container(
-                              height: 2,
-                              color: Colors.grey[400],
-                            ),
-                            onChanged: (String newValue) {
-                              setState(() {
-                                dropdownValue = newValue;
-                                orderService.product = dropdownValue;
-                              });
-                            },
-                            items: <String>['One', 'Two', 'Free', 'Four']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ]),
-                      ),
-                      SizedBox(
                         height: 20.0,
                       ),
-                      SizedBox(
-                        height: 10.0,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Item: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
+                            ),
+                            DropdownButton(
+                              items: itemsDropDown,
+                              onChanged: changeSelectedItem,
+                              value: currentItem,
+                            ),
+                          ],
+                        ),
                       ),
                       TextFormField(
                         controller: _qtyController,
@@ -297,7 +308,7 @@ class _OderDetailsState extends State<OderDetails> {
                         },
                         focusNode: _qtyFocus,
                         onFieldSubmitted: (term) {
-                          _fieldFocusChange(context, _qtyFocus, _unitFocus);
+                          _fieldFocusChange(context, _qtyFocus, _totalFocus);
                         },
                         enabled: calVisibility,
                         keyboardType: TextInputType.number,
@@ -309,6 +320,8 @@ class _OderDetailsState extends State<OderDetails> {
                         validator: (value) {
                           if (value.isEmpty) {
                             return 'Enter valid quantity';
+                          } else {
+                            return null;
                           }
                         },
                       ),
@@ -317,14 +330,7 @@ class _OderDetailsState extends State<OderDetails> {
                       ),
                       TextFormField(
                         controller: _unitController,
-                        enabled: calVisibility,
-                        onChanged: (value) {
-                          orderService.unit = double.parse(value);
-                        },
-                        focusNode: _unitFocus,
-                         onFieldSubmitted: (term) {
-                          _fieldFocusChange(context, _unitFocus, _totalFocus);
-                        },
+                        enabled: false,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText: 'Unit price',
@@ -334,6 +340,8 @@ class _OderDetailsState extends State<OderDetails> {
                         validator: (value) {
                           if (value.isEmpty) {
                             return 'Enter valid unit price';
+                          } else {
+                            return null;
                           }
                         },
                       ),
@@ -470,6 +478,7 @@ class _OderDetailsState extends State<OderDetails> {
                         height: 10.0,
                       ),
                       TextFormField(
+                        controller: _descriptionController,
                         decoration: InputDecoration(
                             labelText: 'Description',
                             border: OutlineInputBorder(
@@ -610,6 +619,23 @@ class _OderDetailsState extends State<OderDetails> {
     }
   }
 
+  void getItems() async {
+    List<DocumentSnapshot> data = await itemService.getItems();
+    setState(() {
+      items = data;
+      itemsDropDown = getItemDropdown();
+      currentItem = widget.product;
+    });
+
+    for (var i = 0; i < data.length; i++) {
+      if (widget.product == data[i].data['name']) {
+        setState(() {
+          _unitController.text = data[i].data['unit_price'].toString();
+        });
+      }
+    }
+  }
+
   // change fields when selection happen
   changeSelectedSupplier(String selected) {
     setState(() {
@@ -634,6 +660,21 @@ class _OderDetailsState extends State<OderDetails> {
           _siteAddressController.text = sites[i].data['address'];
           _siteEmailController.text = sites[i].data['email'];
           _sitePhoneController.text = sites[i].data['contact'];
+        }
+      }
+    });
+  }
+
+  changeSelectedItem(String selected) {
+    setState(() {
+      currentItem = selected;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].data['name'] == currentItem) {
+          _unitController.text = items[i].data['unit_price'].toString();
+          orderService.product = currentItem;
+          orderService.unit = items[i].data['unit_price'];
+          orderService.total = orderService.quantity * orderService.unit;
+          _totalController.text = orderService.total.toString();
         }
       }
     });

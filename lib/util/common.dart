@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 final String ONE = "One";
 final String TWO = "Two";

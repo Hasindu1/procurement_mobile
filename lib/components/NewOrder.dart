@@ -6,7 +6,6 @@ import 'package:procurementapp/service/item.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
-import 'package:procurementapp/util/common.dart';
 import 'package:procurementapp/util/routes.dart';
 import 'package:uuid/uuid.dart';
 
@@ -47,7 +46,7 @@ class _NewOrderState extends State<NewOrder> {
   TextEditingController _qtyController = TextEditingController();
   TextEditingController _unitController = TextEditingController();
   TextEditingController _totalController = TextEditingController();
-  String dropdownValue = ONE;
+  String dropdownValue = 'One';
 
   TextEditingController _supAddressController = TextEditingController();
   TextEditingController _supEmailController = TextEditingController();
@@ -58,6 +57,7 @@ class _NewOrderState extends State<NewOrder> {
 
   @override
   void initState() {
+    super.initState();
     getSuppliers();
     getSites();
     getItems();
@@ -215,29 +215,6 @@ class _NewOrderState extends State<NewOrder> {
                                   borderSide:
                                       BorderSide(color: Colors.blueAccent)))),
                       SizedBox(
-                        height: 10.0,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: Row(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: new Text(
-                                "Site: ",
-                                style: TextStyle(
-                                    color: Colors.grey[700], fontSize: 16.0),
-                              ),
-                            ),
-                            DropdownButton(
-                              items: itemsDropDown,
-                              onChanged: changeSelectedItem,
-                              value: currentItem,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
                         height: 50.0,
                       ),
                       Padding(
@@ -340,7 +317,10 @@ class _NewOrderState extends State<NewOrder> {
                           },
                           controller: _qtyController,
                           validator: (value) {
-                            if (value.isEmpty) return 'Enter quantity';
+                            if (value.isEmpty)
+                              return 'Enter quantity';
+                            else
+                              return null;
                           },
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -353,7 +333,6 @@ class _NewOrderState extends State<NewOrder> {
                       ),
                       TextFormField(
                           enabled: false,
-                          focusNode: _unitFocus,
                           controller: _unitController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -535,6 +514,7 @@ class _NewOrderState extends State<NewOrder> {
       items = data;
       itemsDropDown = getItemsDropdown();
       currentItem = items[0].data['name'];
+      orderService.product = items[0].data['name'];
       _unitController.text = items[0].data['unit_price'].toString();
       orderService.unit = items[0].data['unit_price'];
     });
@@ -576,6 +556,7 @@ class _NewOrderState extends State<NewOrder> {
         if (items[i].data['name'] == currentItem) {
           _unitController.text = items[i].data['unit_price'].toString();
           orderService.unit = items[i].data['unit_price'];
+          orderService.product = items[i].data['name'];
         }
       }
     });
@@ -586,8 +567,7 @@ class _NewOrderState extends State<NewOrder> {
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      orderService.total =
-          orderService.quantity * double.parse(_unitController.text);
+      orderService.total = orderService.quantity * orderService.unit;
       _totalController.text = orderService.total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);

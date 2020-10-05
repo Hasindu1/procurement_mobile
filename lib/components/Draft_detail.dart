@@ -5,19 +5,18 @@ import 'package:procurementapp/components/Drawer.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
-import 'package:procurementapp/util/routes.dart';
 
 class DraftDetails extends StatefulWidget {
   final String orderId;
   final String supplier;
   final String site;
 
-  DraftDetails(
-      {this.orderId,
-      this.site,
-      this.supplier,
-      });
-      
+  DraftDetails({
+    this.orderId,
+    this.site,
+    this.supplier,
+  });
+
   @override
   _DraftDetailsState createState() => _DraftDetailsState();
 }
@@ -29,6 +28,7 @@ class _DraftDetailsState extends State<DraftDetails> {
 
   List<DocumentSnapshot> sites = <DocumentSnapshot>[];
   List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
+  List<DocumentSnapshot> items = <DocumentSnapshot>[];
 
   TextEditingController _siteAddressController = TextEditingController();
   TextEditingController _siteEmailController = TextEditingController();
@@ -59,6 +59,58 @@ class _DraftDetailsState extends State<DraftDetails> {
   final FocusNode _totalFocus = FocusNode();
   final FocusNode _unitFocus = FocusNode();
   final FocusNode _qtyFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // return dropdown with relevant data
+  List<DropdownMenuItem<String>> getSiteDropdown() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (int i = 0; i < sites.length; i++) {
+      setState(() {
+        items.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(sites[i].data['name']),
+              value: sites[i].data['name'],
+            ));
+      });
+    }
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> getSupplierDropdown() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (int i = 0; i < suppliers.length; i++) {
+      setState(() {
+        items.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(suppliers[i].data['name']),
+              value: suppliers[i].data['name'],
+            ));
+      });
+    }
+    return items;
+  }
+
+  List<DropdownMenuItem<String>> getItemsDropdown() {
+    List<DropdownMenuItem<String>> list = new List();
+    for (int i = 0; i < items.length; i++) {
+      setState(() {
+        list.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(items[i].data['name']),
+              value: items[i].data['name'],
+            ));
+      });
+    }
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -217,6 +269,8 @@ class _DraftDetailsState extends State<DraftDetails> {
                         validator: (value) {
                           if (value.isEmpty) {
                             return 'Enter valid quantity';
+                          } else {
+                            return '';
                           }
                         },
                       ),
@@ -230,7 +284,7 @@ class _DraftDetailsState extends State<DraftDetails> {
                           orderService.unit = double.parse(value);
                         },
                         focusNode: _unitFocus,
-                         onFieldSubmitted: (term) {
+                        onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _unitFocus, _totalFocus);
                         },
                         keyboardType: TextInputType.number,
@@ -242,6 +296,8 @@ class _DraftDetailsState extends State<DraftDetails> {
                         validator: (value) {
                           if (value.isEmpty) {
                             return 'Enter valid unit price';
+                          } else {
+                            return '';
                           }
                         },
                       ),
@@ -427,7 +483,7 @@ class _DraftDetailsState extends State<DraftDetails> {
                       //               FlatButton(
                       //                   onPressed: () {
                       //                     orderService.delete();
-                                          
+
                       //                   },
                       //                   color: Colors.red,
                       //                   child: Text(
@@ -454,7 +510,7 @@ class _DraftDetailsState extends State<DraftDetails> {
                       //               FlatButton(
                       //                   onPressed: () {
                       //                     orderService.delete();
-                                          
+
                       //                   },
                       //                   color: Colors.red,
                       //                   child: Text(
@@ -471,12 +527,13 @@ class _DraftDetailsState extends State<DraftDetails> {
       ),
     );
   }
+
   // retrieve data
   void getSites() async {
     List<DocumentSnapshot> data = await siteService.getSites();
     setState(() {
       sites = data;
-      // sitesDropDown = getSiteDropdown();
+      sitesDropDown = getSiteDropdown();
       currentSite = widget.site;
     });
     for (var i = 0; i < data.length; i++) {
@@ -495,7 +552,7 @@ class _DraftDetailsState extends State<DraftDetails> {
     List<DocumentSnapshot> data = await supplierService.getSuppliers();
     setState(() {
       suppliers = data;
-      // supplierDropDown = getSupplierDropdown();
+      supplierDropDown = getSupplierDropdown();
       currentSupplier = widget.supplier;
     });
 
@@ -540,10 +597,10 @@ class _DraftDetailsState extends State<DraftDetails> {
     });
   }
 
-  void handleUpdate() async {
+  void handleUpdate() {
     if (_formKey.currentState.validate()) {
       orderService.status = 'Pending';
-      await orderService.update();
+      orderService.update();
       orderService.reset();
       // Fluttertoast.showToast(msg: 'Order updated!');
     }

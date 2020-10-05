@@ -15,7 +15,9 @@ class _DraftListState extends State<DraftList> {
 
   @override
   void initState() {
+    super.initState();
     getDrafts();
+
   }
 
   @override
@@ -42,8 +44,8 @@ class _DraftListState extends State<DraftList> {
                             context,
                             DraftDetails(
                               orderId: draft.data['id'],
-                              supplier: draft.data['supplier'],
                               site: draft.data['site'],
+                              supplier: draft.data['supplier'],
                             ));
                       })
                     ]))

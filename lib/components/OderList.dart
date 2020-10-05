@@ -68,11 +68,11 @@ class _OrderListState extends State<OrderList> {
                 filteredOrders = orders
                     .where((o) => o.data["supplier"].contains((string)))
                     .toList();
-              }else if (_character == SingleCharacter.site) {
+              } else if (_character == SingleCharacter.site) {
                 filteredOrders = orders
                     .where((o) => o.data["site"].contains((string)))
                     .toList();
-              }else if (_character == SingleCharacter.status) {
+              } else if (_character == SingleCharacter.status) {
                 filteredOrders = orders
                     .where((o) => o.data["status"].contains((string)))
                     .toList();
@@ -175,6 +175,7 @@ class _OrderListState extends State<OrderList> {
                                 unit: order.data['unit'],
                                 total: order.data['total'],
                                 rDate: order.data['date'].toDate(),
+                                description: order.data['description'],
                               ));
                         }),
                       ]))
