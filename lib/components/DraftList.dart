@@ -46,6 +46,11 @@ class _DraftListState extends State<DraftList> {
                               orderId: draft.data['id'],
                               site: draft.data['site'],
                               supplier: draft.data['supplier'],
+                              product: draft.data['product'],
+                              quantity: draft.data['quantity'],
+                              total: draft.data['total'],
+                              rDate: draft.data['date'].toDate(),
+                              description: draft.data['description'],
                             ));
                       })
                     ]))

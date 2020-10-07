@@ -493,7 +493,9 @@ class _OderDetailsState extends State<OderDetails> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
                                 FlatButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      handlePlace();
+                                    },
                                     color: Colors.green,
                                     child: Text(
                                       "Place order",
@@ -684,6 +686,16 @@ class _OderDetailsState extends State<OderDetails> {
     if (_formKey.currentState.validate()) {
       orderService.status = 'Pending';
       await orderService.update();
+      orderService.reset();
+      changeScreenReplacement(context, Home());
+      Fluttertoast.showToast(msg: 'Order updated!');
+    }
+  }
+
+  void handlePlace() async {
+    if (_formKey.currentState.validate()) {
+      orderService.status = 'Placed';
+      await orderService.place();
       orderService.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');

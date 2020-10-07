@@ -461,7 +461,9 @@ class _NewOrderState extends State<NewOrder> {
                               width: 5.0,
                             ),
                             FlatButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                handleSave();
+                              },
                               child: Text(
                                 "Hold",
                                 style: TextStyle(color: Colors.white),
@@ -575,7 +577,11 @@ class _NewOrderState extends State<NewOrder> {
 
   void handleSubmit() async {
     if (_formKey.currentState.validate()) {
-      orderService.status = 'Pending';
+      if (orderService.total <= 100000) {
+        orderService.status = 'Approved';
+      } else {
+        orderService.status = 'Pending';
+      }
       await orderService.createOrder();
       _formKey.currentState.reset();
       orderService.reset();
@@ -586,7 +592,11 @@ class _NewOrderState extends State<NewOrder> {
 
   void handleSave() async {
     if (_formKey.currentState.validate()) {
-      orderService.status = 'Pending';
+      if (orderService.total <= 100000) {
+        orderService.status = 'Approved';
+      } else {
+        orderService.status = 'Pending';
+      }
       await orderService.saveOrder();
       _formKey.currentState.reset();
       orderService.reset();

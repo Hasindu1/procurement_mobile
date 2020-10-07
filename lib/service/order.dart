@@ -142,7 +142,7 @@ class OrderService {
   Future<List<DocumentSnapshot>> getOrders() async {
     return await _db
         .collection("orders")
-        .where("draft", isEqualTo: "false")
+        .where("draft", isEqualTo: "false").where("status", whereIn: ["Pending", "Approved", "Rejected"])
         .getDocuments()
         .then((snaps) {
       return snaps.documents;
@@ -172,8 +172,15 @@ class OrderService {
     });
   }
 
+  void place() async {
+    await _db.collection("orders").document(this._id).updateData({
+      "status": this.status,
+    });
+  }
+
   // delete data
   void delete() async {
     await _db.collection("orders").document(this._id).delete();
   }
+
 }

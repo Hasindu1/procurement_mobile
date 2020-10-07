@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
+import 'package:procurementapp/service/item.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
@@ -10,12 +11,21 @@ class DraftDetails extends StatefulWidget {
   final String orderId;
   final String supplier;
   final String site;
+  final String product;
+  final int quantity;
+  final double total;
+  final DateTime rDate;
+  final String description;
 
-  DraftDetails({
-    this.orderId,
-    this.site,
-    this.supplier,
-  });
+  DraftDetails(
+      {this.orderId,
+      this.site,
+      this.supplier,
+      this.product,
+      this.quantity,
+      this.total,
+      this.rDate,
+      this.description});
 
   @override
   _DraftDetailsState createState() => _DraftDetailsState();
@@ -25,6 +35,7 @@ class _DraftDetailsState extends State<DraftDetails> {
   SiteService siteService = new SiteService();
   SupplierService supplierService = new SupplierService();
   OrderService orderService = new OrderService();
+  ItemService itemService = new ItemService();
 
   List<DocumentSnapshot> sites = <DocumentSnapshot>[];
   List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
@@ -43,10 +54,12 @@ class _DraftDetailsState extends State<DraftDetails> {
   TextEditingController _supPhoneController = TextEditingController();
 
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
+  List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
   String currentSite;
   String currentSupplier;
+  String currentItem;
 
   final _formKey = GlobalKey<FormState>();
   String _supplierId;
@@ -63,6 +76,21 @@ class _DraftDetailsState extends State<DraftDetails> {
   @override
   void initState() {
     super.initState();
+    orderService.id = widget.orderId;
+    orderService.site = widget.site;
+    orderService.supplier = widget.supplier;
+    orderService.product = widget.product;
+    orderService.quantity = widget.quantity;
+    orderService.total = widget.total;
+    orderService.date = widget.rDate;
+    orderService.description = widget.description;
+
+    _totalController.text = widget.total.toString();
+    _qtyController.text = widget.quantity.toString();
+
+    getSites();
+    getSuppliers();
+    getItems();
   }
 
   // return dropdown with relevant data
@@ -217,38 +245,24 @@ class _DraftDetailsState extends State<DraftDetails> {
                         height: 50.0,
                       ),
                       Padding(
-                        padding: const EdgeInsets.only(left: 12.0),
-                        child: Row(children: <Widget>[
-                          DropdownButton<String>(
-                            value: dropdownValue,
-                            iconSize: 24,
-                            style: TextStyle(color: Colors.grey[700]),
-                            elevation: 16,
-                            underline: Container(
-                              height: 2,
-                              color: Colors.grey[400],
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Item: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
                             ),
-                            onChanged: (String newValue) {
-                              setState(() {
-                                dropdownValue = newValue;
-                                orderService.product = dropdownValue;
-                              });
-                            },
-                            items: <String>['One', 'Two', 'Free', 'Four']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
-                              );
-                            }).toList(),
-                          ),
-                        ]),
-                      ),
-                      SizedBox(
-                        height: 20.0,
-                      ),
-                      SizedBox(
-                        height: 10.0,
+                            DropdownButton(
+                              items: itemsDropDown,
+                              onChanged: changeSelectedItem,
+                              value: currentItem,
+                            ),
+                          ],
+                        ),
                       ),
                       TextFormField(
                         controller: _qtyController,
@@ -568,6 +582,23 @@ class _DraftDetailsState extends State<DraftDetails> {
     }
   }
 
+  void getItems() async {
+    List<DocumentSnapshot> data = await itemService.getItems();
+    setState(() {
+      items = data;
+      itemsDropDown = getItemsDropdown();
+      currentItem = widget.product;
+    });
+
+    for (var i = 0; i < data.length; i++) {
+      if (widget.product == data[i].data['name']) {
+        setState(() {
+          _unitController.text = data[i].data['unit_price'].toString();
+        });
+      }
+    }
+  }
+
   // change fields when selection happen
   changeSelectedSupplier(String selected) {
     setState(() {
@@ -592,6 +623,21 @@ class _DraftDetailsState extends State<DraftDetails> {
           _siteAddressController.text = sites[i].data['address'];
           _siteEmailController.text = sites[i].data['email'];
           _sitePhoneController.text = sites[i].data['contact'];
+        }
+      }
+    });
+  }
+
+  changeSelectedItem(String selected) {
+    setState(() {
+      currentItem = selected;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].data['name'] == currentItem) {
+          _unitController.text = items[i].data['unit_price'].toString();
+          orderService.unit = items[i].data['unit_price'];
+          orderService.product = items[i].data['name'];
+          orderService.total = orderService.quantity * orderService.unit;
+          _totalController.text = orderService.total.toString();
         }
       }
     });
