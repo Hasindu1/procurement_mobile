@@ -597,7 +597,8 @@ class _NewOrderState extends State<NewOrder> {
       } else {
         orderService.status = 'Pending';
       }
-      await orderService.saveOrder();
+      orderService.draft = true;
+      await orderService.createOrder();
       _formKey.currentState.reset();
       orderService.reset();
       changeScreenReplacement(context, Home());

@@ -14,6 +14,7 @@ class OrderService {
   String _comment;
   String _status;
   String _remarks;
+  bool _draft = false;
 
   // getters setters
   String get id => _id;
@@ -86,6 +87,10 @@ class OrderService {
 
   set remarks(String value) => _remarks = value;
 
+  bool get draft => _draft;
+
+  set draft(bool value) => _draft = value;
+
   // create order
   createOrder() async {
     await _db.collection("orders").document(id).setData({
@@ -100,26 +105,7 @@ class OrderService {
       "description": this.description,
       "comment": this.comment,
       "status": this.status,
-      "draft": "false",
-      "remarks": this.remarks
-    });
-  }
-
-  // save order
-  saveOrder() async {
-    await _db.collection("orders").document(id).setData({
-      "id": this.id,
-      "site": this.site,
-      "supplier": this.supplier,
-      "product": this.product,
-      "quantity": this.quantity,
-      "unit": this.unit,
-      "total": this.total,
-      "date": this.date,
-      "description": this.description,
-      "comment": this.comment,
-      "status": this.status,
-      "draft": "true",
+      "draft": this.draft,
       "remarks": this.remarks
     });
   }
@@ -142,17 +128,18 @@ class OrderService {
   Future<List<DocumentSnapshot>> getOrders() async {
     return await _db
         .collection("orders")
-        .where("draft", isEqualTo: "false").where("status", whereIn: ["Pending", "Approved", "Rejected"])
+        .where("draft", isEqualTo: false)
+        .where("status", whereIn: ["Pending", "Approved", "Rejected"])
         .getDocuments()
         .then((snaps) {
-      return snaps.documents;
-    });
+          return snaps.documents;
+        });
   }
 
   Future<List<DocumentSnapshot>> getDrafts() async {
     return await _db
         .collection("orders")
-        .where("draft", isEqualTo: "true")
+        .where("draft", isEqualTo: true)
         .getDocuments()
         .then((snaps) {
       return snaps.documents;
@@ -167,6 +154,7 @@ class OrderService {
       "product": this.product,
       "quantity": this.quantity,
       "unit": this.unit,
+      "draft": this.draft,
       "total": this.total,
       "date": this.date
     });
@@ -182,5 +170,4 @@ class OrderService {
   void delete() async {
     await _db.collection("orders").document(this._id).delete();
   }
-
 }

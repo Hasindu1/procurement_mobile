@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
+import 'package:procurementapp/pages/Draft.dart';
 import 'package:procurementapp/service/item.dart';
 import 'package:procurementapp/service/order.dart';
 import 'package:procurementapp/service/site.dart';
 import 'package:procurementapp/service/supplier.dart';
+import 'package:procurementapp/util/routes.dart';
 
 class DraftDetails extends StatefulWidget {
   final String orderId;
@@ -14,8 +17,10 @@ class DraftDetails extends StatefulWidget {
   final String product;
   final int quantity;
   final double total;
+  final double unit;
   final DateTime rDate;
   final String description;
+  final bool draft;
 
   DraftDetails(
       {this.orderId,
@@ -24,8 +29,10 @@ class DraftDetails extends StatefulWidget {
       this.product,
       this.quantity,
       this.total,
+      this.unit,
       this.rDate,
-      this.description});
+      this.description,
+      this.draft});
 
   @override
   _DraftDetailsState createState() => _DraftDetailsState();
@@ -84,6 +91,8 @@ class _DraftDetailsState extends State<DraftDetails> {
     orderService.total = widget.total;
     orderService.date = widget.rDate;
     orderService.description = widget.description;
+    orderService.draft = widget.draft;
+    orderService.unit = widget.unit;
 
     _totalController.text = widget.total.toString();
     _qtyController.text = widget.quantity.toString();
@@ -457,82 +466,32 @@ class _DraftDetailsState extends State<DraftDetails> {
                           orderService.description = value;
                         },
                       ),
-                      // widget.status == 'Approved'
-                      //     ? Row(
-                      //         mainAxisAlignment: MainAxisAlignment.center,
-                      //         children: <Widget>[
-                      //           FlatButton(
-                      //               onPressed: () {},
-                      //               color: Colors.green,
-                      //               child: Text(
-                      //                 "Place order",
-                      //                 style: TextStyle(color: Colors.white),
-                      //               )),
-                      //           SizedBox(
-                      //             width: 5.0,
-                      //           ),
-                      //           FlatButton(
-                      //               onPressed: () {},
-                      //               color: Colors.blue,
-                      //               child: Text(
-                      //                 "Update",
-                      //                 style: TextStyle(color: Colors.white),
-                      //               )),
-                      //           SizedBox(
-                      //             width: 5.0,
-                      //           ),
-                      //           FlatButton(
-                      //               onPressed: () {},
-                      //               color: Colors.red,
-                      //               child: Text(
-                      //                 "Delete",
-                      //                 style: TextStyle(color: Colors.white),
-                      //               )),
-                      //         ],
-                      //       )
-                      //     : widget.status == 'Rejected'
-                      //         ? Row(
-                      //             mainAxisAlignment: MainAxisAlignment.center,
-                      //             children: <Widget>[
-                      //               FlatButton(
-                      //                   onPressed: () {
-                      //                     orderService.delete();
-
-                      //                   },
-                      //                   color: Colors.red,
-                      //                   child: Text(
-                      //                     "Delete",
-                      //                     style: TextStyle(color: Colors.white),
-                      //                   )),
-                      //             ],
-                      //           )
-                      //         : Row(
-                      //             mainAxisAlignment: MainAxisAlignment.center,
-                      //             children: <Widget>[
-                      //               FlatButton(
-                      //                   onPressed: () {
-                      //                     handleUpdate();
-                      //                   },
-                      //                   color: Colors.blueAccent,
-                      //                   child: Text(
-                      //                     "Update",
-                      //                     style: TextStyle(color: Colors.white),
-                      //                   )),
-                      //               SizedBox(
-                      //                 width: 5.0,
-                      //               ),
-                      //               FlatButton(
-                      //                   onPressed: () {
-                      //                     orderService.delete();
-
-                      //                   },
-                      //                   color: Colors.red,
-                      //                   child: Text(
-                      //                     "Delete",
-                      //                     style: TextStyle(color: Colors.white),
-                      //                   )),
-                      //             ],
-                      //           )
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          FlatButton(
+                              onPressed: () {
+                                handleUpdate();
+                              },
+                              color: Colors.green,
+                              child: Text(
+                                "Create",
+                                style: TextStyle(color: Colors.white),
+                              )),
+                          SizedBox(
+                            width: 5.0,
+                          ),
+                          FlatButton(
+                              onPressed: () {
+                                orderService.delete();
+                              },
+                              color: Colors.red,
+                              child: Text(
+                                "Discard",
+                                style: TextStyle(color: Colors.white),
+                              )),
+                        ],
+                      )
                     ],
                   )),
             )
@@ -644,12 +603,11 @@ class _DraftDetailsState extends State<DraftDetails> {
   }
 
   void handleUpdate() {
-    if (_formKey.currentState.validate()) {
-      orderService.status = 'Pending';
-      orderService.update();
-      orderService.reset();
-      // Fluttertoast.showToast(msg: 'Order updated!');
-    }
+    orderService.draft = false;
+    orderService.update();
+    orderService.reset();
+    Fluttertoast.showToast(msg: 'Order created!');
+    changeScreenReplacement(context, Draft());
   }
 
   // change focus
