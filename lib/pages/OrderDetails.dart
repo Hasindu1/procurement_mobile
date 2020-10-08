@@ -505,7 +505,9 @@ class _OderDetailsState extends State<OderDetails> {
                                   width: 5.0,
                                 ),
                                 FlatButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      handleUpdate();
+                                    },
                                     color: Colors.blue,
                                     child: Text(
                                       "Update",
@@ -515,7 +517,11 @@ class _OderDetailsState extends State<OderDetails> {
                                   width: 5.0,
                                 ),
                                 FlatButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      changeScreenReplacement(context, Home());
+                                      Fluttertoast.showToast(
+                                          msg: 'Order deleted!');
+                                    },
                                     color: Colors.red,
                                     child: Text(
                                       "Delete",
@@ -688,7 +694,7 @@ class _OderDetailsState extends State<OderDetails> {
       await orderService.update();
       orderService.reset();
       changeScreenReplacement(context, Home());
-      Fluttertoast.showToast(msg: 'Order updated!');
+      Fluttertoast.showToast(msg: 'Order placed!');
     }
   }
 

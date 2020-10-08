@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/Delivered.dart';
 import 'package:procurementapp/pages/Draft.dart';
 import 'package:procurementapp/pages/PurchaseOrder.dart';
 import 'package:procurementapp/util/routes.dart';
@@ -27,7 +28,7 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                changeScreen(context, PurchaseOrder());
+                changeScreenReplacement(context, PurchaseOrder());
               },
               child: ListTile(
                 title: Text("Purchase A Order"),
@@ -39,7 +40,19 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                changeScreen(context, Draft());
+                changeScreenReplacement(context, Delivered());
+              },
+              child: ListTile(
+                title: Text("Delivered"),
+                leading: Icon(
+                  Icons.send,
+                  color: Colors.blueAccent,
+                ),
+              ),
+            ),
+            InkWell(
+              onTap: () {
+                changeScreenReplacement(context, Draft());
               },
               child: ListTile(
                 title: Text("Drafts"),

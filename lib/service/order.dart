@@ -146,6 +146,16 @@ class OrderService {
     });
   }
 
+  Future<List<DocumentSnapshot>> getDelivered() async {
+    return await _db
+        .collection("orders")
+        .where("status", isEqualTo: "Placed")
+        .getDocuments()
+        .then((snaps) {
+      return snaps.documents;
+    });
+  }
+
   // update data
   void update() async {
     await _db.collection("orders").document(this._id).updateData({
@@ -156,7 +166,8 @@ class OrderService {
       "unit": this.unit,
       "draft": this.draft,
       "total": this.total,
-      "date": this.date
+      "date": this.date,
+      "description": this.description
     });
   }
 
