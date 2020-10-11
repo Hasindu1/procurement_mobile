@@ -52,6 +52,7 @@ class _DraftListState extends State<DraftList> {
                               unit: draft.data['unit'],
                               rDate: draft.data['date'].toDate(),
                               description: draft.data['description'],
+                              comment: draft.data['comment'],
                               draft: draft.data['draft'],
                             ));
                       })

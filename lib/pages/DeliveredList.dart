@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:procurementapp/pages/DeliveredDetails.dart';
 import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/util/routes.dart';
 
 class DeliveredList extends StatefulWidget {
   @override
@@ -32,7 +34,9 @@ class _DeliveredListState extends State<DeliveredList> {
               rows: deliveredList
                   .map((delivered) => DataRow(cells: [
                         DataCell(Text(delivered.data['id'])),
-                        DataCell(Icon(Icons.remove_red_eye), onTap: () {})
+                        DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                          changeScreen(context, DeliveredDetails(id: delivered.data['id'],product: delivered.data['product'],quantity: delivered.data['quantity'],unit: delivered.data['unit'],total: delivered.data['unit'],dDate: delivered.data['date'].toDate(),));
+                        })
                       ]))
                   .toList()),
         ),

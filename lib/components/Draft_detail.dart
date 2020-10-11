@@ -20,6 +20,7 @@ class DraftDetails extends StatefulWidget {
   final double unit;
   final DateTime rDate;
   final String description;
+  final String comment;
   final bool draft;
 
   DraftDetails(
@@ -32,6 +33,7 @@ class DraftDetails extends StatefulWidget {
       this.unit,
       this.rDate,
       this.description,
+      this.comment,
       this.draft});
 
   @override
@@ -59,6 +61,9 @@ class _DraftDetailsState extends State<DraftDetails> {
   TextEditingController _supAddressController = TextEditingController();
   TextEditingController _supEmailController = TextEditingController();
   TextEditingController _supPhoneController = TextEditingController();
+
+  TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _commentController = TextEditingController();
 
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
@@ -91,11 +96,14 @@ class _DraftDetailsState extends State<DraftDetails> {
     orderService.total = widget.total;
     orderService.date = widget.rDate;
     orderService.description = widget.description;
+    orderService.comment = widget.comment;
     orderService.draft = widget.draft;
     orderService.unit = widget.unit;
 
     _totalController.text = widget.total.toString();
     _qtyController.text = widget.quantity.toString();
+    _descriptionController.text = widget.description;
+    _commentController.text = widget.comment;
 
     getSites();
     getSuppliers();
@@ -457,6 +465,7 @@ class _DraftDetailsState extends State<DraftDetails> {
                         height: 10.0,
                       ),
                       TextFormField(
+                        controller: _descriptionController,
                         decoration: InputDecoration(
                             labelText: 'Description',
                             border: OutlineInputBorder(
@@ -464,6 +473,20 @@ class _DraftDetailsState extends State<DraftDetails> {
                                     BorderSide(color: Colors.blueAccent))),
                         onChanged: (value) {
                           orderService.description = value;
+                        },
+                      ),
+                      SizedBox(
+                        height: 10.0,
+                      ),
+                      TextFormField(
+                        controller: _commentController,
+                        decoration: InputDecoration(
+                            labelText: 'Comment',
+                            border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.blueAccent))),
+                        onChanged: (value) {
+                          orderService.comment = value;
                         },
                       ),
                       Row(

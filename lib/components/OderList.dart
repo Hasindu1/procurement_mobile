@@ -176,6 +176,7 @@ class _OrderListState extends State<OrderList> {
                                 total: order.data['total'],
                                 rDate: order.data['date'].toDate(),
                                 description: order.data['description'],
+                                comment: order.data['comment'],
                               ));
                         }),
                       ]))

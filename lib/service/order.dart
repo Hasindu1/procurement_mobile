@@ -167,13 +167,15 @@ class OrderService {
       "draft": this.draft,
       "total": this.total,
       "date": this.date,
-      "description": this.description
+      "description": this.description,
+      "comment": this.comment
     });
   }
 
   void place() async {
     await _db.collection("orders").document(this._id).updateData({
       "status": this.status,
+      "date": this.date
     });
   }
 

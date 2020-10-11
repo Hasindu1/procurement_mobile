@@ -28,7 +28,7 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                changeScreenReplacement(context, PurchaseOrder());
+                changeScreen(context, PurchaseOrder());
               },
               child: ListTile(
                 title: Text("Purchase A Order"),
@@ -40,7 +40,7 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                changeScreenReplacement(context, Delivered());
+                changeScreen(context, Delivered());
               },
               child: ListTile(
                 title: Text("Delivered"),
@@ -52,7 +52,7 @@ class MyDrawer extends StatelessWidget {
             ),
             InkWell(
               onTap: () {
-                changeScreenReplacement(context, Draft());
+                changeScreen(context, Draft());
               },
               child: ListTile(
                 title: Text("Drafts"),

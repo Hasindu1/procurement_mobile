@@ -21,6 +21,7 @@ class OderDetails extends StatefulWidget {
   final double total;
   final DateTime rDate;
   final String description;
+  final String comment;
 
   OderDetails(
       {this.orderId,
@@ -32,7 +33,8 @@ class OderDetails extends StatefulWidget {
       this.unit,
       this.total,
       this.rDate,
-      this.description});
+      this.description,
+      this.comment});
 
   @override
   _OderDetailsState createState() => _OderDetailsState();
@@ -60,6 +62,7 @@ class _OderDetailsState extends State<OderDetails> {
   TextEditingController _supEmailController = TextEditingController();
   TextEditingController _supPhoneController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _commentController = TextEditingController();
 
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
@@ -92,11 +95,13 @@ class _OderDetailsState extends State<OderDetails> {
     orderService.total = widget.total;
     orderService.date = widget.rDate;
     orderService.description = widget.description;
+    orderService.comment = widget.comment;
 
     _qtyController.text = widget.quantity.toString();
     _unitController.text = widget.unit.toString();
     _totalController.text = widget.total.toString();
     _descriptionController.text = widget.description;
+    _commentController.text = widget.comment;
 
     getSites();
     getSuppliers();
@@ -239,9 +244,6 @@ class _OderDetailsState extends State<OderDetails> {
                       ),
                       SizedBox(
                         height: 30.0,
-                      ),
-                      SizedBox(
-                        height: 10.0,
                       ),
                       TextFormField(
                         enabled: visibility,
@@ -488,6 +490,18 @@ class _OderDetailsState extends State<OderDetails> {
                           orderService.description = value;
                         },
                       ),
+                      SizedBox(height: 10.0),
+                      TextFormField(
+                        controller: _commentController,
+                        decoration: InputDecoration(
+                            labelText: 'Comment',
+                            border: OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.blueAccent))),
+                        onChanged: (value) {
+                          orderService.comment = value;
+                        },
+                      ),
                       widget.status == 'Approved'
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -518,6 +532,7 @@ class _OderDetailsState extends State<OderDetails> {
                                 ),
                                 FlatButton(
                                     onPressed: () {
+                                      orderService.delete();
                                       changeScreenReplacement(context, Home());
                                       Fluttertoast.showToast(
                                           msg: 'Order deleted!');
@@ -694,13 +709,14 @@ class _OderDetailsState extends State<OderDetails> {
       await orderService.update();
       orderService.reset();
       changeScreenReplacement(context, Home());
-      Fluttertoast.showToast(msg: 'Order placed!');
+      Fluttertoast.showToast(msg: 'Order updated!');
     }
   }
 
   void handlePlace() async {
     if (_formKey.currentState.validate()) {
       orderService.status = 'Placed';
+      orderService.date = DateTime.now();
       await orderService.place();
       orderService.reset();
       changeScreenReplacement(context, Home());
