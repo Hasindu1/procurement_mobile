@@ -456,7 +456,8 @@ class _OderDetailsState extends State<OderDetails> {
                           SizedBox(
                             width: 10.0,
                           ),
-                          IconButton(
+                          Expanded(
+                            child: IconButton(
                               icon: Icon(
                                 Icons.calendar_today,
                                 size: 35.0,
@@ -473,7 +474,8 @@ class _OderDetailsState extends State<OderDetails> {
                                     orderService.date = date;
                                   });
                                 });
-                              })
+                              }),
+                          )
                         ],
                       ),
                       SizedBox(

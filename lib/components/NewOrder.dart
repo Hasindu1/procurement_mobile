@@ -380,7 +380,8 @@ class _NewOrderState extends State<NewOrder> {
                           SizedBox(
                             width: 10.0,
                           ),
-                          IconButton(
+                          Expanded(
+                            child: IconButton(
                               icon: Icon(
                                 Icons.calendar_today,
                                 size: 35.0,
@@ -397,7 +398,8 @@ class _NewOrderState extends State<NewOrder> {
                                     orderService.date = date;
                                   });
                                 });
-                              })
+                              }),
+                          )
                         ],
                       ),
                       SizedBox(

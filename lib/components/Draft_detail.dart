@@ -441,24 +441,26 @@ class _DraftDetailsState extends State<DraftDetails> {
                           SizedBox(
                             width: 10.0,
                           ),
-                          IconButton(
-                              icon: Icon(
-                                Icons.calendar_today,
-                                size: 35.0,
-                                color: Colors.blue,
-                              ),
-                              onPressed: () {
-                                showDatePicker(
-                                        context: context,
-                                        initialDate: orderService.date,
-                                        firstDate: DateTime(2020),
-                                        lastDate: DateTime(2033))
-                                    .then((date) {
-                                  setState(() {
-                                    orderService.date = date;
+                          Expanded(
+                            child: IconButton(
+                                icon: Icon(
+                                  Icons.calendar_today,
+                                  size: 35.0,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  showDatePicker(
+                                          context: context,
+                                          initialDate: orderService.date,
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2033))
+                                      .then((date) {
+                                    setState(() {
+                                      orderService.date = date;
+                                    });
                                   });
-                                });
-                              })
+                                }),
+                          )
                         ],
                       ),
                       SizedBox(
