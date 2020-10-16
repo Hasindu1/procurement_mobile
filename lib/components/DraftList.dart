@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:procurementapp/components/Draft_detail.dart';
-import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/model/order.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 
 class DraftList extends StatefulWidget {
@@ -10,14 +10,13 @@ class DraftList extends StatefulWidget {
 }
 
 class _DraftListState extends State<DraftList> {
-  OrderService orderService = new OrderService();
-  List<DocumentSnapshot> drafts = <DocumentSnapshot>[];
+  ServiceProvider serviceProvider = new ServiceProvider();
+  List<Order> drafts = <Order>[];
 
   @override
   void initState() {
     super.initState();
     getDrafts();
-
   }
 
   @override
@@ -34,36 +33,38 @@ class _DraftListState extends State<DraftList> {
               DataColumn(label: Text("Site Manager")),
               DataColumn(label: Text("View Order"))
             ],
-            rows: drafts
+            rows: drafts != null ? drafts
                 .map((draft) => DataRow(cells: [
-                      DataCell(Text(draft.data['id'])),
-                      DataCell(Text(draft.data['supplier'])),
-                      DataCell(Text(draft.data['site'])),
+                      DataCell(Text(draft.id)),
+                      DataCell(Text(draft.supplier)),
+                      DataCell(Text(draft.site)),
                       DataCell(Icon(Icons.remove_red_eye), onTap: () {
                         changeScreenReplacement(
                             context,
                             DraftDetails(
-                              orderId: draft.data['id'],
-                              site: draft.data['site'],
-                              supplier: draft.data['supplier'],
-                              product: draft.data['product'],
-                              quantity: draft.data['quantity'],
-                              total: draft.data['total'],
-                              unit: draft.data['unit'],
-                              rDate: draft.data['date'].toDate(),
-                              description: draft.data['description'],
-                              comment: draft.data['comment'],
-                              draft: draft.data['draft'],
+                              orderId: draft.id,
+                              site: draft.site,
+                              supplier: draft.supplier,
+                              product: draft.product,
+                              quantity: draft.quantity,
+                              total: draft.total,
+                              unit: draft.unit,
+                              rDate: draft.date.toLocal(),
+                              description: draft.description,
+                              comment: draft.comment,
+                              draft: draft.draft,
                             ));
                       })
                     ]))
-                .toList()),
+                .toList()
+                : []),
       ),
     ));
   }
 
-  getDrafts() async {
-    List<DocumentSnapshot> data = await orderService.getDrafts();
+  // return draft orders and assign to drafts list
+  void getDrafts() async {
+    List<Order> data = await serviceProvider.getDrafts();
     setState(() {
       drafts = data;
     });

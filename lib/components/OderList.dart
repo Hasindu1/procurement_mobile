@@ -1,10 +1,9 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:procurementapp/model/order.dart';
 import 'package:procurementapp/pages/OrderDetails.dart';
-import 'package:procurementapp/service/order.dart';
-import 'package:procurementapp/service/site.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 
 class OrderList extends StatefulWidget {
@@ -31,13 +30,10 @@ class Debouncer {
 
 class _OrderListState extends State<OrderList> {
   SingleCharacter _character = SingleCharacter.supplier;
-  OrderService orderService = new OrderService();
-  SiteService siteService = new SiteService();
-  List<DocumentSnapshot> orders = <DocumentSnapshot>[];
-  List<DocumentSnapshot> filteredOrders = <DocumentSnapshot>[];
+  ServiceProvider serviceProvider = new ServiceProvider();
+  List<Order> orders = <Order>[];
+  List<Order> filteredOrders = <Order>[];
   final _debouncer = Debouncer(milliseconds: 500);
-
-  final db = Firestore.instance;
 
   @override
   void initState() {
@@ -66,15 +62,15 @@ class _OrderListState extends State<OrderList> {
             setState(() {
               if (_character == SingleCharacter.supplier) {
                 filteredOrders = orders
-                    .where((o) => o.data["supplier"].contains((string)))
+                    .where((o) => o.supplier.contains((string)))
                     .toList();
               } else if (_character == SingleCharacter.site) {
                 filteredOrders = orders
-                    .where((o) => o.data["site"].contains((string)))
+                    .where((o) => o.site.contains((string)))
                     .toList();
               } else if (_character == SingleCharacter.status) {
                 filteredOrders = orders
-                    .where((o) => o.data["status"].contains((string)))
+                    .where((o) => o.status.contains((string)))
                     .toList();
               }
             });
@@ -156,41 +152,43 @@ class _OrderListState extends State<OrderList> {
                   style: TextStyle(fontSize: 15.0),
                 )),
               ],
-              rows: filteredOrders
+              rows: filteredOrders != null ? filteredOrders
                   .map((order) => DataRow(cells: [
-                        DataCell(Text(order.data['id'])),
-                        DataCell(Text(order.data['supplier'])),
-                        DataCell(Text(order.data['site'])),
-                        DataCell(Text(order.data['status'])),
+                        DataCell(Text(order.id)),
+                        DataCell(Text(order.supplier)),
+                        DataCell(Text(order.site)),
+                        DataCell(Text(order.status)),
                         DataCell(Icon(Icons.remove_red_eye), onTap: () {
                           changeScreen(
                               context,
                               OderDetails(
-                                orderId: order.data['id'],
-                                site: order.data['site'],
-                                supplier: order.data['supplier'],
-                                status: order.data['status'],
-                                product: order.data['product'],
-                                quantity: order.data['quantity'],
-                                unit: order.data['unit'],
-                                total: order.data['total'],
-                                rDate: order.data['date'].toDate(),
-                                description: order.data['description'],
-                                comment: order.data['comment'],
+                                orderId: order.id,
+                                site: order.site,
+                                supplier: order.supplier,
+                                status: order.status,
+                                product: order.product,
+                                quantity: order.quantity,
+                                unit: order.unit,
+                                total: order.total,
+                                rDate: order.date.toLocal(),
+                                description: order.description,
+                                comment: order.comment,
                               ));
                         }),
                       ]))
-                  .toList(),
+                  .toList()
+                  : []
             )),
       ),
     ]);
   }
 
+//  return orders which draft is false
   void getOrders() async {
-    List<DocumentSnapshot> data = await orderService.getOrders();
+    List<Order> data = await serviceProvider.getOrders();
     setState(() {
       orders = data;
-      filteredOrders = orders;
+      filteredOrders = data;
     });
   }
 }

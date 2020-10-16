@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:procurementapp/model/order.dart';
 import 'package:procurementapp/pages/DeliveredDetails.dart';
-import 'package:procurementapp/service/order.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 
 class DeliveredList extends StatefulWidget {
@@ -10,8 +10,8 @@ class DeliveredList extends StatefulWidget {
 }
 
 class _DeliveredListState extends State<DeliveredList> {
-  OrderService orderService = new OrderService();
-  List<DocumentSnapshot> deliveredList = <DocumentSnapshot>[];
+  ServiceProvider serviceProvider = new ServiceProvider();
+  List<Order> deliveredList = <Order>[];
 
   @override
   void initState() {
@@ -31,21 +31,31 @@ class _DeliveredListState extends State<DeliveredList> {
                 DataColumn(label: Text("Order reference")),
                 DataColumn(label: Text("View"))
               ],
-              rows: deliveredList
+              rows: deliveredList != null ? deliveredList
                   .map((delivered) => DataRow(cells: [
-                        DataCell(Text(delivered.data['id'])),
+                        DataCell(Text(delivered.id)),
                         DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                          changeScreen(context, DeliveredDetails(id: delivered.data['id'],product: delivered.data['product'],quantity: delivered.data['quantity'],unit: delivered.data['unit'],total: delivered.data['unit'],dDate: delivered.data['date'].toDate(),));
+                          changeScreen(
+                              context,
+                              DeliveredDetails(
+                                id: delivered.id,
+                                product: delivered.product,
+                                quantity: delivered.quantity,
+                                unit: delivered.unit,
+                                total: delivered.unit,
+                                dDate: delivered.date.toLocal(),
+                              ));
                         })
                       ]))
-                  .toList()),
+                  .toList() 
+                  : []),
         ),
       ),
     );
   }
 
   getDelivered() async {
-    List<DocumentSnapshot> data = await orderService.getDelivered();
+    List<Order> data = await serviceProvider.getPlacedOrders();
     setState(() {});
     deliveredList = data;
   }

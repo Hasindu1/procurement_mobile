@@ -1,13 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
+import 'package:procurementapp/model/item.dart';
+import 'package:procurementapp/model/site.dart';
+import 'package:procurementapp/model/supplier.dart';
 import 'package:procurementapp/pages/Draft.dart';
-import 'package:procurementapp/service/item.dart';
-import 'package:procurementapp/service/order.dart';
-import 'package:procurementapp/service/site.dart';
-import 'package:procurementapp/service/supplier.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 
 class DraftDetails extends StatefulWidget {
@@ -41,14 +40,11 @@ class DraftDetails extends StatefulWidget {
 }
 
 class _DraftDetailsState extends State<DraftDetails> {
-  SiteService siteService = new SiteService();
-  SupplierService supplierService = new SupplierService();
-  OrderService orderService = new OrderService();
-  ItemService itemService = new ItemService();
+  ServiceProvider serviceProvider = new ServiceProvider();
 
-  List<DocumentSnapshot> sites = <DocumentSnapshot>[];
-  List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
-  List<DocumentSnapshot> items = <DocumentSnapshot>[];
+  List<Site> sites = <Site>[];
+  List<Supplier> suppliers = <Supplier>[];
+  List<Item> items = <Item>[];
 
   TextEditingController _siteAddressController = TextEditingController();
   TextEditingController _siteEmailController = TextEditingController();
@@ -74,8 +70,9 @@ class _DraftDetailsState extends State<DraftDetails> {
   String currentItem;
 
   final _formKey = GlobalKey<FormState>();
-  String _supplierId;
-  String _siteId;
+
+  DateTime currentDate;
+  double total = 0.0;
   String dropdownValue;
   DateTime date;
   bool visibility = false;
@@ -88,22 +85,11 @@ class _DraftDetailsState extends State<DraftDetails> {
   @override
   void initState() {
     super.initState();
-    orderService.id = widget.orderId;
-    orderService.site = widget.site;
-    orderService.supplier = widget.supplier;
-    orderService.product = widget.product;
-    orderService.quantity = widget.quantity;
-    orderService.total = widget.total;
-    orderService.date = widget.rDate;
-    orderService.description = widget.description;
-    orderService.comment = widget.comment;
-    orderService.draft = widget.draft;
-    orderService.unit = widget.unit;
-
     _totalController.text = widget.total.toString();
     _qtyController.text = widget.quantity.toString();
     _descriptionController.text = widget.description;
     _commentController.text = widget.comment;
+    currentDate = widget.rDate;
 
     getSites();
     getSuppliers();
@@ -118,8 +104,8 @@ class _DraftDetailsState extends State<DraftDetails> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(sites[i].data['name']),
-              value: sites[i].data['name'],
+              child: Text(sites[i].name),
+              value: sites[i].name,
             ));
       });
     }
@@ -133,8 +119,8 @@ class _DraftDetailsState extends State<DraftDetails> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(suppliers[i].data['name']),
-              value: suppliers[i].data['name'],
+              child: Text(suppliers[i].name),
+              value: suppliers[i].name,
             ));
       });
     }
@@ -148,8 +134,8 @@ class _DraftDetailsState extends State<DraftDetails> {
         list.insert(
             0,
             DropdownMenuItem(
-              child: Text(items[i].data['name']),
-              value: items[i].data['name'],
+              child: Text(items[i].name),
+              value: items[i].name,
             ));
       });
     }
@@ -283,9 +269,6 @@ class _DraftDetailsState extends State<DraftDetails> {
                       ),
                       TextFormField(
                         controller: _qtyController,
-                        onChanged: (value) {
-                          orderService.quantity = int.parse(value);
-                        },
                         focusNode: _qtyFocus,
                         onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _qtyFocus, _unitFocus);
@@ -311,9 +294,6 @@ class _DraftDetailsState extends State<DraftDetails> {
                       TextFormField(
                         controller: _unitController,
                         enabled: calVisibility,
-                        onChanged: (value) {
-                          orderService.unit = double.parse(value);
-                        },
                         focusNode: _unitFocus,
                         onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _unitFocus, _totalFocus);
@@ -431,11 +411,11 @@ class _DraftDetailsState extends State<DraftDetails> {
                             width: 140.0,
                           ),
                           Text(
-                            orderService.date.day.toString() +
+                            currentDate.day.toString() +
                                 "-" +
-                                orderService.date.month.toString() +
+                                currentDate.month.toString() +
                                 "-" +
-                                orderService.date.year.toString(),
+                                currentDate.year.toString(),
                             style: TextStyle(fontSize: 16.0),
                           ),
                           SizedBox(
@@ -451,12 +431,12 @@ class _DraftDetailsState extends State<DraftDetails> {
                                 onPressed: () {
                                   showDatePicker(
                                           context: context,
-                                          initialDate: orderService.date,
+                                          initialDate: currentDate,
                                           firstDate: DateTime(2020),
                                           lastDate: DateTime(2033))
                                       .then((date) {
                                     setState(() {
-                                      orderService.date = date;
+                                      currentDate = date;
                                     });
                                   });
                                 }),
@@ -473,9 +453,6 @@ class _DraftDetailsState extends State<DraftDetails> {
                             border: OutlineInputBorder(
                                 borderSide:
                                     BorderSide(color: Colors.blueAccent))),
-                        onChanged: (value) {
-                          orderService.description = value;
-                        },
                       ),
                       SizedBox(
                         height: 10.0,
@@ -487,9 +464,6 @@ class _DraftDetailsState extends State<DraftDetails> {
                             border: OutlineInputBorder(
                                 borderSide:
                                     BorderSide(color: Colors.blueAccent))),
-                        onChanged: (value) {
-                          orderService.comment = value;
-                        },
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -507,8 +481,9 @@ class _DraftDetailsState extends State<DraftDetails> {
                             width: 5.0,
                           ),
                           FlatButton(
-                              onPressed: () {
-                                orderService.delete();
+                              onPressed: () async {
+                                await serviceProvider
+                                    .deleteOrder(widget.orderId);
                               },
                               color: Colors.red,
                               child: Text(
@@ -528,26 +503,25 @@ class _DraftDetailsState extends State<DraftDetails> {
 
   // retrieve data
   void getSites() async {
-    List<DocumentSnapshot> data = await siteService.getSites();
+    List<Site> data = await serviceProvider.getSites();
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
       currentSite = widget.site;
     });
     for (var i = 0; i < data.length; i++) {
-      if (widget.site == data[i].data['name']) {
+      if (widget.site == data[i].name) {
         setState(() {
-          _siteId = data[i].data['siteId'];
-          _siteAddressController.text = data[i].data['address'];
-          _siteEmailController.text = data[i].data['email'];
-          _sitePhoneController.text = data[i].data['contact'];
+          _siteAddressController.text = data[i].address;
+          _siteEmailController.text = data[i].email;
+          _sitePhoneController.text = data[i].contact;
         });
       }
     }
   }
 
   void getSuppliers() async {
-    List<DocumentSnapshot> data = await supplierService.getSuppliers();
+    List<Supplier> data = await serviceProvider.getSuppliers();
     setState(() {
       suppliers = data;
       supplierDropDown = getSupplierDropdown();
@@ -555,19 +529,18 @@ class _DraftDetailsState extends State<DraftDetails> {
     });
 
     for (var i = 0; i < data.length; i++) {
-      if (widget.supplier == data[i].data['name']) {
+      if (widget.supplier == data[i].name) {
         setState(() {
-          _supplierId = data[i].data['supplierId'];
-          _supAddressController.text = data[i].data['address'];
-          _supEmailController.text = data[i].data['email'];
-          _supPhoneController.text = data[i].data['contact'];
+          _supAddressController.text = data[i].address;
+          _supEmailController.text = data[i].email;
+          _supPhoneController.text = data[i].contact;
         });
       }
     }
   }
 
   void getItems() async {
-    List<DocumentSnapshot> data = await itemService.getItems();
+    List<Item> data = await serviceProvider.getItems();
     setState(() {
       items = data;
       itemsDropDown = getItemsDropdown();
@@ -575,9 +548,9 @@ class _DraftDetailsState extends State<DraftDetails> {
     });
 
     for (var i = 0; i < data.length; i++) {
-      if (widget.product == data[i].data['name']) {
+      if (widget.product == data[i].name) {
         setState(() {
-          _unitController.text = data[i].data['unit_price'].toString();
+          _unitController.text = data[i].unit_price.toString();
         });
       }
     }
@@ -588,11 +561,10 @@ class _DraftDetailsState extends State<DraftDetails> {
     setState(() {
       currentSupplier = selected;
       for (var i = 0; i < suppliers.length; i++) {
-        if (suppliers[i].data['name'] == currentSupplier) {
-          orderService.supplier = suppliers[i].data['name'];
-          _supAddressController.text = suppliers[i].data['address'];
-          _supEmailController.text = suppliers[i].data['email'];
-          _supPhoneController.text = suppliers[i].data['contact'];
+        if (suppliers[i].name == currentSupplier) {
+          _supAddressController.text = suppliers[i].address;
+          _supEmailController.text = suppliers[i].email;
+          _supPhoneController.text = suppliers[i].contact;
         }
       }
     });
@@ -602,11 +574,10 @@ class _DraftDetailsState extends State<DraftDetails> {
     setState(() {
       currentSite = selected;
       for (var i = 0; i < sites.length; i++) {
-        if (sites[i].data['name'] == currentSite) {
-          orderService.site = sites[0].data['name'];
-          _siteAddressController.text = sites[i].data['address'];
-          _siteEmailController.text = sites[i].data['email'];
-          _sitePhoneController.text = sites[i].data['contact'];
+        if (sites[i].name == currentSite) {
+          _siteAddressController.text = sites[i].address;
+          _siteEmailController.text = sites[i].email;
+          _sitePhoneController.text = sites[i].contact;
         }
       }
     });
@@ -616,21 +587,35 @@ class _DraftDetailsState extends State<DraftDetails> {
     setState(() {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
-        if (items[i].data['name'] == currentItem) {
-          _unitController.text = items[i].data['unit_price'].toString();
-          orderService.unit = items[i].data['unit_price'];
-          orderService.product = items[i].data['name'];
-          orderService.total = orderService.quantity * orderService.unit;
-          _totalController.text = orderService.total.toString();
+        if (items[i].name == currentItem) {
+          _unitController.text = items[i].unit_price.toString();
+          total = int.parse(_qtyController.text) *
+              double.parse(_unitController.text);
+          _totalController.text = total.toString();
         }
       }
     });
   }
 
   void handleUpdate() {
-    orderService.draft = false;
-    orderService.update();
-    orderService.reset();
+    String status = "Pending";
+    if (total < 100000) {
+      status = "Approved";
+    }
+    serviceProvider.updateOrder(
+        id: widget.orderId,
+        site: currentSite,
+        supplier: currentSupplier,
+        product: currentItem,
+        quantity: int.parse(_qtyController.text),
+        unit: double.parse(_unitController.text),
+        total: total,
+        date: currentDate,
+        description: _descriptionController.text,
+        comment: _commentController.text,
+        status: status,
+        remarks: null,
+        draft: false);
     Fluttertoast.showToast(msg: 'Order created!');
     changeScreenReplacement(context, Draft());
   }
@@ -640,8 +625,9 @@ class _DraftDetailsState extends State<DraftDetails> {
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      orderService.total = orderService.quantity * orderService.unit;
-      _totalController.text = orderService.total.toString();
+      total =
+          int.parse(_qtyController.text) * double.parse(_unitController.text);
+      _totalController.text = total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);
   }

@@ -1,13 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:procurementapp/model/item.dart';
+import 'package:procurementapp/model/site.dart';
+import 'package:procurementapp/model/supplier.dart';
 import 'package:procurementapp/components/Appbar.dart';
 import 'package:procurementapp/components/Drawer.dart';
 import 'package:procurementapp/pages/Home.dart';
-import 'package:procurementapp/service/item.dart';
-import 'package:procurementapp/service/order.dart';
-import 'package:procurementapp/service/site.dart';
-import 'package:procurementapp/service/supplier.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 
 class OderDetails extends StatefulWidget {
@@ -41,14 +40,11 @@ class OderDetails extends StatefulWidget {
 }
 
 class _OderDetailsState extends State<OderDetails> {
-  SiteService siteService = new SiteService();
-  SupplierService supplierService = new SupplierService();
-  OrderService orderService = new OrderService();
-  ItemService itemService = new ItemService();
+  ServiceProvider serviceProvider = new ServiceProvider();
 
-  List<DocumentSnapshot> sites = <DocumentSnapshot>[];
-  List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
-  List<DocumentSnapshot> items = <DocumentSnapshot>[];
+  List<Site> sites = <Site>[];
+  List<Supplier> suppliers = <Supplier>[];
+  List<Item> items = <Item>[];
 
   TextEditingController _siteAddressController = TextEditingController();
   TextEditingController _siteEmailController = TextEditingController();
@@ -68,13 +64,16 @@ class _OderDetailsState extends State<OderDetails> {
   List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
+
   String currentSite;
   String currentSupplier;
   String currentItem;
+  DateTime currentDate = DateTime.now();
+  String status;
+  double total = 0.0;
 
   final _formKey = GlobalKey<FormState>();
-  String _supplierId;
-  String _siteId;
+
   String dropdownValue;
   DateTime date;
   bool visibility = false;
@@ -86,22 +85,13 @@ class _OderDetailsState extends State<OderDetails> {
   @override
   void initState() {
     super.initState();
-    orderService.id = widget.orderId;
-    orderService.site = widget.site;
-    orderService.supplier = widget.supplier;
-    orderService.product = widget.product;
-    orderService.quantity = widget.quantity;
-    orderService.unit = widget.unit;
-    orderService.total = widget.total;
-    orderService.date = widget.rDate;
-    orderService.description = widget.description;
-    orderService.comment = widget.comment;
-
     _qtyController.text = widget.quantity.toString();
     _unitController.text = widget.unit.toString();
     _totalController.text = widget.total.toString();
     _descriptionController.text = widget.description;
     _commentController.text = widget.comment;
+    currentDate = widget.rDate;
+    total = widget.total;
 
     getSites();
     getSuppliers();
@@ -119,8 +109,8 @@ class _OderDetailsState extends State<OderDetails> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(sites[i].data['name']),
-              value: sites[i].data['name'],
+              child: Text(sites[i].name),
+              value: sites[i].name,
             ));
       });
     }
@@ -134,8 +124,8 @@ class _OderDetailsState extends State<OderDetails> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(suppliers[i].data['name']),
-              value: suppliers[i].data['name'],
+              child: Text(suppliers[i].name),
+              value: suppliers[i].name,
             ));
       });
     }
@@ -149,8 +139,8 @@ class _OderDetailsState extends State<OderDetails> {
         list.insert(
             0,
             DropdownMenuItem(
-              child: Text(items[i].data['name']),
-              value: items[i].data['name'],
+              child: Text(items[i].name),
+              value: items[i].name,
             ));
       });
     }
@@ -305,9 +295,6 @@ class _OderDetailsState extends State<OderDetails> {
                       ),
                       TextFormField(
                         controller: _qtyController,
-                        onChanged: (value) {
-                          orderService.quantity = int.parse(value);
-                        },
                         focusNode: _qtyFocus,
                         onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _qtyFocus, _totalFocus);
@@ -446,11 +433,11 @@ class _OderDetailsState extends State<OderDetails> {
                             width: 140.0,
                           ),
                           Text(
-                            orderService.date.day.toString() +
+                            currentDate.day.toString() +
                                 "-" +
-                                orderService.date.month.toString() +
+                                currentDate.month.toString() +
                                 "-" +
-                                orderService.date.year.toString(),
+                                currentDate.year.toString(),
                             style: TextStyle(fontSize: 16.0),
                           ),
                           SizedBox(
@@ -466,12 +453,12 @@ class _OderDetailsState extends State<OderDetails> {
                               onPressed: () {
                                 showDatePicker(
                                         context: context,
-                                        initialDate: orderService.date,
+                                        initialDate: currentDate,
                                         firstDate: DateTime(2020),
                                         lastDate: DateTime(2033))
                                     .then((date) {
                                   setState(() {
-                                    orderService.date = date;
+                                    currentDate = date;
                                   });
                                 });
                               }),
@@ -488,9 +475,6 @@ class _OderDetailsState extends State<OderDetails> {
                             border: OutlineInputBorder(
                                 borderSide:
                                     BorderSide(color: Colors.blueAccent))),
-                        onChanged: (value) {
-                          orderService.description = value;
-                        },
                       ),
                       SizedBox(height: 10.0),
                       TextFormField(
@@ -500,9 +484,6 @@ class _OderDetailsState extends State<OderDetails> {
                             border: OutlineInputBorder(
                                 borderSide:
                                     BorderSide(color: Colors.blueAccent))),
-                        onChanged: (value) {
-                          orderService.comment = value;
-                        },
                       ),
                       widget.status == 'Approved'
                           ? Row(
@@ -522,19 +503,7 @@ class _OderDetailsState extends State<OderDetails> {
                                 ),
                                 FlatButton(
                                     onPressed: () {
-                                      handleUpdate();
-                                    },
-                                    color: Colors.blue,
-                                    child: Text(
-                                      "Update",
-                                      style: TextStyle(color: Colors.white),
-                                    )),
-                                SizedBox(
-                                  width: 5.0,
-                                ),
-                                FlatButton(
-                                    onPressed: () {
-                                      orderService.delete();
+                                      serviceProvider.deleteOrder(widget.orderId);
                                       changeScreenReplacement(context, Home());
                                       Fluttertoast.showToast(
                                           msg: 'Order deleted!');
@@ -552,7 +521,7 @@ class _OderDetailsState extends State<OderDetails> {
                                   children: <Widget>[
                                     FlatButton(
                                         onPressed: () {
-                                          orderService.delete();
+                                          serviceProvider.deleteOrder(widget.orderId);
                                           changeScreenReplacement(
                                               context, Home());
                                           Fluttertoast.showToast(
@@ -582,7 +551,7 @@ class _OderDetailsState extends State<OderDetails> {
                                     ),
                                     FlatButton(
                                         onPressed: () {
-                                          orderService.delete();
+                                          serviceProvider.deleteOrder(widget.orderId);
                                           changeScreenReplacement(
                                               context, Home());
                                           Fluttertoast.showToast(
@@ -604,28 +573,29 @@ class _OderDetailsState extends State<OderDetails> {
     );
   }
 
-  // retrieve data
+  // get data of suppliers and assign to site list and call dropdown
   void getSites() async {
-    List<DocumentSnapshot> data = await siteService.getSites();
+    List<Site> data = await serviceProvider.getSites();
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
       currentSite = widget.site;
     });
     for (var i = 0; i < data.length; i++) {
-      if (widget.site == data[i].data['name']) {
+      if (widget.site == data[i].name) {
         setState(() {
-          _siteId = data[i].data['siteId'];
-          _siteAddressController.text = data[i].data['address'];
-          _siteEmailController.text = data[i].data['email'];
-          _sitePhoneController.text = data[i].data['contact'];
+          _siteAddressController.text = data[i].address;
+          _siteEmailController.text = data[i].email;
+          _sitePhoneController.text = data[i].contact;
         });
+        break;
       }
     }
   }
 
+  // get data of sites and assign to supplier list and call dropdown
   void getSuppliers() async {
-    List<DocumentSnapshot> data = await supplierService.getSuppliers();
+    List<Supplier> data = await serviceProvider.getSuppliers();
     setState(() {
       suppliers = data;
       supplierDropDown = getSupplierDropdown();
@@ -633,19 +603,20 @@ class _OderDetailsState extends State<OderDetails> {
     });
 
     for (var i = 0; i < data.length; i++) {
-      if (widget.supplier == data[i].data['name']) {
+      if (widget.supplier == data[i].name) {
         setState(() {
-          _supplierId = data[i].data['supplierId'];
-          _supAddressController.text = data[i].data['address'];
-          _supEmailController.text = data[i].data['email'];
-          _supPhoneController.text = data[i].data['contact'];
+          _supAddressController.text = data[i].address;
+          _supEmailController.text = data[i].email;
+          _supPhoneController.text = data[i].contact;
         });
+        break;
       }
     }
   }
 
+  // get data of items and assign to items list and call dropdown
   void getItems() async {
-    List<DocumentSnapshot> data = await itemService.getItems();
+    List<Item> data = await serviceProvider.getItems();
     setState(() {
       items = data;
       itemsDropDown = getItemDropdown();
@@ -653,86 +624,86 @@ class _OderDetailsState extends State<OderDetails> {
     });
 
     for (var i = 0; i < data.length; i++) {
-      if (widget.product == data[i].data['name']) {
+      if (widget.product == data[i].name) {
         setState(() {
-          _unitController.text = data[i].data['unit_price'].toString();
+          _unitController.text = data[i].unit_price.toString();
         });
+        break;
       }
     }
   }
 
-  // change fields when selection happen
+  // change fields when selection happen in supplier dropdown
   changeSelectedSupplier(String selected) {
     setState(() {
       currentSupplier = selected;
       for (var i = 0; i < suppliers.length; i++) {
-        if (suppliers[i].data['name'] == currentSupplier) {
-          orderService.supplier = suppliers[i].data['name'];
-          _supAddressController.text = suppliers[i].data['address'];
-          _supEmailController.text = suppliers[i].data['email'];
-          _supPhoneController.text = suppliers[i].data['contact'];
+        if (suppliers[i].name == currentSupplier) {
+          _supAddressController.text = suppliers[i].address;
+          _supEmailController.text = suppliers[i].email;
+          _supPhoneController.text = suppliers[i].contact;
+          break;
         }
       }
     });
   }
 
+  // change fields when selection happen in site dropdown
   changeSelectedSite(String selected) {
     setState(() {
       currentSite = selected;
       for (var i = 0; i < sites.length; i++) {
-        if (sites[i].data['name'] == currentSite) {
-          orderService.site = sites[0].data['name'];
-          _siteAddressController.text = sites[i].data['address'];
-          _siteEmailController.text = sites[i].data['email'];
-          _sitePhoneController.text = sites[i].data['contact'];
+        if (sites[i].name == currentSite) {
+          _siteAddressController.text = sites[i].address;
+          _siteEmailController.text = sites[i].email;
+          _sitePhoneController.text = sites[i].contact;
+          break;
         }
       }
     });
   }
 
+  // change fields when selection happen in item dropdown
   changeSelectedItem(String selected) {
     setState(() {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
-        if (items[i].data['name'] == currentItem) {
-          _unitController.text = items[i].data['unit_price'].toString();
-          orderService.product = currentItem;
-          orderService.unit = items[i].data['unit_price'];
-          orderService.total = orderService.quantity * orderService.unit;
-          _totalController.text = orderService.total.toString();
+        if (items[i].name == currentItem) {
+          _unitController.text = items[i].unit_price.toString();
+          total = items[i].unit_price * int.parse(_qtyController.text);
+          _totalController.text = total.toString();
+          break;
         }
       }
     });
   }
 
+  // update details regarding to order
   void handleUpdate() async {
     if (_formKey.currentState.validate()) {
-      orderService.status = 'Pending';
-      await orderService.update();
-      orderService.reset();
+      await serviceProvider.updateOrder(id: widget.orderId, site: currentSite, supplier: currentSupplier, product: currentItem, quantity: int.parse(_qtyController.text), unit: double.parse(_unitController.text), total: total, date: currentDate, description: _descriptionController.text, comment: _commentController.text, status: widget.status, remarks: null, draft: false);
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');
     }
   }
 
+  // update status of order as Placed
   void handlePlace() async {
     if (_formKey.currentState.validate()) {
-      orderService.status = 'Placed';
-      orderService.date = DateTime.now();
-      await orderService.place();
-      orderService.reset();
+      String status = 'Placed';
+      await serviceProvider.updateOrder(id: widget.orderId, site: currentSite, supplier: currentSupplier, product: currentItem, quantity: int.parse(_qtyController.text), unit: double.parse(_unitController.text), total: total, date: currentDate, description: _descriptionController.text, comment: _commentController.text, status: status, remarks: null, draft: false);
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');
     }
   }
 
-  // change focus
+  // change focus node
   _fieldFocusChange(
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      orderService.total = orderService.quantity * orderService.unit;
-      _totalController.text = orderService.total.toString();
+      total = int.parse(_qtyController.text) * double.parse(_unitController.text);
+      _totalController.text = total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);
   }

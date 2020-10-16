@@ -1,11 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:procurementapp/model/item.dart';
+import 'package:procurementapp/model/site.dart';
+import 'package:procurementapp/model/supplier.dart';
 import 'package:procurementapp/pages/Home.dart';
-import 'package:procurementapp/service/item.dart';
-import 'package:procurementapp/service/order.dart';
-import 'package:procurementapp/service/site.dart';
-import 'package:procurementapp/service/supplier.dart';
+import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,24 +18,24 @@ class _NewOrderState extends State<NewOrder> {
   var uuid = Uuid().v1();
   final _formKey = GlobalKey<FormState>();
 
-  SupplierService supplierService = SupplierService();
-  SiteService siteService = SiteService();
-  OrderService orderService = OrderService();
-  ItemService itemService = ItemService();
+  ServiceProvider serviceProvider = new ServiceProvider();
 
-  List<DocumentSnapshot> sites = <DocumentSnapshot>[];
-  List<DocumentSnapshot> suppliers = <DocumentSnapshot>[];
-  List<DocumentSnapshot> items = <DocumentSnapshot>[];
+  List<Site> sites = <Site>[];
+  List<Supplier> suppliers = <Supplier>[];
+  List<Item> items = <Item>[];
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
+
   String currentSite;
   String currentSupplier;
   String currentItem;
+  DateTime currentDate = DateTime.now();
+  String status;
+  double total = 0.0;
 
   final FocusNode _totalFocus = FocusNode();
-  final FocusNode _unitFocus = FocusNode();
   final FocusNode _qtyFocus = FocusNode();
 
   TextEditingController _refeController = TextEditingController();
@@ -46,13 +45,12 @@ class _NewOrderState extends State<NewOrder> {
   TextEditingController _qtyController = TextEditingController();
   TextEditingController _unitController = TextEditingController();
   TextEditingController _totalController = TextEditingController();
-  String dropdownValue = 'One';
 
   TextEditingController _supAddressController = TextEditingController();
   TextEditingController _supEmailController = TextEditingController();
   TextEditingController _supPhoneController = TextEditingController();
-  TextEditingController _supDescController = TextEditingController();
-  TextEditingController _supCommentController = TextEditingController();
+  TextEditingController _descController = TextEditingController();
+  TextEditingController _commentController = TextEditingController();
   DateTime date;
 
   @override
@@ -61,10 +59,9 @@ class _NewOrderState extends State<NewOrder> {
     getSuppliers();
     getSites();
     getItems();
+
     date = DateTime.now();
     _refeController.text = uuid.toString();
-    orderService.product = dropdownValue;
-    orderService.id = _refeController.text;
   }
 
   // return dropdown with relevant data
@@ -75,8 +72,8 @@ class _NewOrderState extends State<NewOrder> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(sites[i].data['name']),
-              value: sites[i].data['name'],
+              child: Text(sites[i].name),
+              value: sites[i].name,
             ));
       });
     }
@@ -90,8 +87,8 @@ class _NewOrderState extends State<NewOrder> {
         items.insert(
             0,
             DropdownMenuItem(
-              child: Text(suppliers[i].data['name']),
-              value: suppliers[i].data['name'],
+              child: Text(suppliers[i].name),
+              value: suppliers[i].name,
             ));
       });
     }
@@ -105,8 +102,8 @@ class _NewOrderState extends State<NewOrder> {
         list.insert(
             0,
             DropdownMenuItem(
-              child: Text(items[i].data['name']),
-              value: items[i].data['name'],
+              child: Text(items[i].name),
+              value: items[i].name,
             ));
       });
     }
@@ -308,9 +305,6 @@ class _NewOrderState extends State<NewOrder> {
                         ),
                       ),
                       TextFormField(
-                          onChanged: (value) {
-                            orderService.quantity = int.parse(value);
-                          },
                           focusNode: _qtyFocus,
                           onFieldSubmitted: (term) {
                             _fieldFocusChange(context, _qtyFocus, _totalFocus);
@@ -370,11 +364,11 @@ class _NewOrderState extends State<NewOrder> {
                             width: 140.0,
                           ),
                           Text(
-                            orderService.date.day.toString() +
+                            currentDate.day.toString() +
                                 "-" +
-                                orderService.date.month.toString() +
+                                currentDate.month.toString() +
                                 "-" +
-                                orderService.date.year.toString(),
+                                currentDate.year.toString(),
                             style: TextStyle(fontSize: 16.0),
                           ),
                           SizedBox(
@@ -382,23 +376,23 @@ class _NewOrderState extends State<NewOrder> {
                           ),
                           Expanded(
                             child: IconButton(
-                              icon: Icon(
-                                Icons.calendar_today,
-                                size: 35.0,
-                                color: Colors.blue,
-                              ),
-                              onPressed: () {
-                                showDatePicker(
-                                        context: context,
-                                        initialDate: orderService.date,
-                                        firstDate: DateTime(2020),
-                                        lastDate: DateTime(2033))
-                                    .then((date) {
-                                  setState(() {
-                                    orderService.date = date;
+                                icon: Icon(
+                                  Icons.calendar_today,
+                                  size: 35.0,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  showDatePicker(
+                                          context: context,
+                                          initialDate: currentDate,
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2033))
+                                      .then((date) {
+                                    setState(() {
+                                      currentDate = date;
+                                    });
                                   });
-                                });
-                              }),
+                                }),
                           )
                         ],
                       ),
@@ -406,10 +400,7 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
-                          controller: _supDescController,
-                          onChanged: (value) {
-                            orderService.description = value;
-                          },
+                          controller: _descController,
                           keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
                               labelText: 'Description',
@@ -420,11 +411,8 @@ class _NewOrderState extends State<NewOrder> {
                         height: 10.0,
                       ),
                       TextFormField(
-                        controller: _supCommentController,
+                        controller: _commentController,
                         keyboardType: TextInputType.multiline,
-                        onChanged: (value) {
-                          orderService.comment = value;
-                        },
                         decoration: InputDecoration(
                             labelText: 'Comment',
                             border: OutlineInputBorder(
@@ -484,83 +472,78 @@ class _NewOrderState extends State<NewOrder> {
     );
   }
 
-  // get data
+  // get data of suppliers and assign to suppliers list and call dropdown
   getSuppliers() async {
-    List<DocumentSnapshot> data = await supplierService.getSuppliers();
+    List<Supplier> data = await serviceProvider.getSuppliers();
     setState(() {
       suppliers = data;
       supplierDropDown = getSupplierDropdown();
-      currentSupplier = suppliers[0].data['name'];
-      orderService.supplier = suppliers[0].data['name'];
-      _supAddressController.text = suppliers[0].data['address'];
-      _supEmailController.text = suppliers[0].data['email'];
-      _supPhoneController.text = suppliers[0].data['contact'];
+      currentSupplier = suppliers[0].name;
+      _supAddressController.text = suppliers[0].address;
+      _supEmailController.text = suppliers[0].email;
+      _supPhoneController.text = suppliers[0].contact;
     });
   }
 
+  // get data of sites and assign to sites list and call dropdown
   getSites() async {
-    List<DocumentSnapshot> data = await siteService.getSites();
+    List<Site> data = await serviceProvider.getSites();
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
-      currentSite = sites[0].data['name'];
-      orderService.site = sites[0].data['name'];
-      _siteAddressController.text = sites[0].data['address'];
-      _siteEmailController.text = sites[0].data['email'];
-      _sitePhoneController.text = sites[0].data['contact'];
+      currentSite = sites[0].name;
+      _siteAddressController.text = sites[0].address;
+      _siteEmailController.text = sites[0].email;
+      _sitePhoneController.text = sites[0].contact;
     });
   }
 
+  // get data of items and assign to items list and call dropdown
   getItems() async {
-    List<DocumentSnapshot> data = await itemService.getItems();
-
+    List<Item> data = await serviceProvider.getItems();
     setState(() {
       items = data;
       itemsDropDown = getItemsDropdown();
-      currentItem = items[0].data['name'];
-      orderService.product = items[0].data['name'];
-      _unitController.text = items[0].data['unit_price'].toString();
-      orderService.unit = items[0].data['unit_price'];
+      currentItem = items[0].name;
+      _unitController.text = items[0].unit_price.toString();
     });
   }
 
-  // change fields when selection happen
+  // change fields when selection happen in supplier dropdown
   changeSelectedSupplier(String selected) {
     setState(() {
       currentSupplier = selected;
       for (var i = 0; i < suppliers.length; i++) {
-        if (suppliers[i].data['name'] == currentSupplier) {
-          orderService.supplier = suppliers[i].data['name'];
-          _supAddressController.text = suppliers[i].data['address'];
-          _supEmailController.text = suppliers[i].data['email'];
-          _supPhoneController.text = suppliers[i].data['contact'];
+        if (suppliers[i].name == currentSupplier) {
+          _supAddressController.text = suppliers[i].address;
+          _supEmailController.text = suppliers[i].email;
+          _supPhoneController.text = suppliers[i].contact;
         }
       }
     });
   }
 
+  // change fields when selection happen in site dropdown
   changeSelectedSite(String selected) {
     setState(() {
       currentSite = selected;
       for (var i = 0; i < sites.length; i++) {
-        if (sites[i].data['name'] == currentSite) {
-          orderService.site = sites[0].data['name'];
-          _siteAddressController.text = sites[i].data['address'];
-          _siteEmailController.text = sites[i].data['email'];
-          _sitePhoneController.text = sites[i].data['contact'];
+        if (sites[i].name == currentSite) {
+          _siteAddressController.text = sites[i].address;
+          _siteEmailController.text = sites[i].email;
+          _sitePhoneController.text = sites[i].contact;
         }
       }
     });
   }
 
+  // change fields when selection happen in item dropdown
   changeSelectedItem(String selected) {
     setState(() {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
-        if (items[i].data['name'] == currentItem) {
-          _unitController.text = items[i].data['unit_price'].toString();
-          orderService.unit = items[i].data['unit_price'];
-          orderService.product = items[i].data['name'];
+        if (items[i].name == currentItem) {
+          _unitController.text = items[i].unit_price.toString();
         }
       }
     });
@@ -571,38 +554,70 @@ class _NewOrderState extends State<NewOrder> {
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      orderService.total = orderService.quantity * orderService.unit;
-      _totalController.text = orderService.total.toString();
+      total =
+          int.parse(_qtyController.text) * double.parse(_unitController.text);
+      _totalController.text = total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);
   }
 
+  /* check form valid or not and
+    call createOrder method defined in ServiceProvider
+   */
   void handleSubmit() async {
     if (_formKey.currentState.validate()) {
-      if (orderService.total <= 100000) {
-        orderService.status = 'Approved';
+      if (total <= 100000) {
+        status = 'Approved';
       } else {
-        orderService.status = 'Pending';
+        status = 'Pending';
       }
-      await orderService.createOrder();
+      await serviceProvider.createOrder(
+          id: _refeController.text,
+          site: currentSite,
+          supplier: currentSupplier,
+          product: currentItem,
+          quantity: int.parse(_qtyController.text),
+          unit: double.parse(_unitController.text),
+          total: double.parse(_totalController.text),
+          date: currentDate,
+          description: _descController.text,
+          comment: _commentController.text,
+          status: status,
+          remarks: null,
+          draft: false);
       _formKey.currentState.reset();
-      orderService.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order created");
     }
   }
 
+  /* check form valid or not,
+    check total budget and assign status,
+    set draft as true and call createOrder method
+    defined in ServiceProvider
+   */
   void handleSave() async {
     if (_formKey.currentState.validate()) {
-      if (orderService.total <= 100000) {
-        orderService.status = 'Approved';
+      if (total <= 100000) {
+        status = 'Approved';
       } else {
-        orderService.status = 'Pending';
+        status = 'Pending';
       }
-      orderService.draft = true;
-      await orderService.createOrder();
+      await serviceProvider.createOrder(
+          id: _refeController.text,
+          site: currentSite,
+          supplier: currentSupplier,
+          product: currentItem,
+          quantity: int.parse(_qtyController.text),
+          unit: double.parse(_unitController.text),
+          total: double.parse(_totalController.text),
+          date: currentDate,
+          description: _descController.text,
+          comment: _commentController.text,
+          status: status,
+          remarks: null,
+          draft: true);
       _formKey.currentState.reset();
-      orderService.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order saved");
     }
