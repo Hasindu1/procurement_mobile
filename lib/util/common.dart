@@ -4,6 +4,8 @@ final String SITES = "sites";
 final String SUPPLIERS = "suppliers";
 final String ITEMS = "items";
 final String DELIVERY = "deliveries";
+final String ENQUIRIES = "enquiries";
+final String DEPOTS = "depots";
 
 //columns
 final String DRAFT = "draft";

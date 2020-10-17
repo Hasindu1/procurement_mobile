@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:procurementapp/components/EnquiryDetails.dart';
 import 'package:procurementapp/model/order.dart';
 import 'package:procurementapp/pages/OrderDetails.dart';
 import 'package:procurementapp/service/service_provider.dart';
@@ -148,6 +149,11 @@ class _OrderListState extends State<OrderList> {
                     "View Order",
                     style: TextStyle(fontSize: 15.0),
                   )),
+                  DataColumn(
+                      label: Text(
+                    "Enquiry",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
                 ],
                 rows: filteredOrders != null
                     ? filteredOrders
@@ -172,6 +178,9 @@ class _OrderListState extends State<OrderList> {
                                       comment: order.comment,
                                     ));
                               }),
+                              DataCell(Icon(Icons.info), onTap: () {
+                                changeScreen(context, EnquiryDetails(orderRef: order.id,));
+                              })
                             ]))
                         .toList()
                     : [])),

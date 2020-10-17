@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:procurementapp/model/delivery.dart';
+import 'package:procurementapp/model/depot.dart';
+import 'package:procurementapp/model/enquiry.dart';
 import 'package:procurementapp/model/item.dart';
 import 'package:procurementapp/model/order.dart';
 import 'package:procurementapp/model/site.dart';
@@ -72,7 +74,8 @@ class ServiceProvider {
       @required String comment,
       @required String status,
       @required String remarks,
-      @required bool draft}) async {
+      @required bool draft,
+      @required double budget}) async {
     Order order = new Order(
         id: id,
         site: site,
@@ -88,7 +91,7 @@ class ServiceProvider {
         draft: draft,
         reason: null,
         isCompleted: null,
-        budget: null);
+        budget: budget);
     await _db.collection(ORDERS).document(id).setData(order.toMap());
   }
 
@@ -128,7 +131,8 @@ class ServiceProvider {
       @required String comment,
       @required String status,
       @required String remarks,
-      @required bool draft}) async {
+      @required bool draft,
+      @required double budget}) async {
     Order order = new Order(
         id: id,
         site: site,
@@ -144,10 +148,11 @@ class ServiceProvider {
         draft: draft,
         reason: null,
         isCompleted: null,
-        budget: null);
+        budget: budget);
     await _db.collection(ORDERS).document(order.id).updateData(order.toMap());
   }
 
+// create delivery with relevant fields
   Future createDelivery(
       {@required deliveryId,
       @required orderRef,
@@ -158,7 +163,10 @@ class ServiceProvider {
         orderRef: orderRef,
         item: item,
         isPayed: isPayed);
-    await _db.collection(DELIVERY).add(delivery.toMap());
+    await _db
+        .collection(DELIVERY)
+        .document(deliveryId)
+        .setData(delivery.toMap());
   }
 
 //  return orders which are draft is true
@@ -188,6 +196,26 @@ class ServiceProvider {
       if (placedDocumentSnapshot.documents.isNotEmpty) {
         return placedDocumentSnapshot.documents
             .map((snapshot) => Order.fromMap(snapshot.data))
+            .toList();
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+// create new Enquiry to order
+  Future createEnquiry({@required String orderRef, @required enquiry}) async {
+    Enquiry enquiryModel = new Enquiry(orderRef: orderRef, enquiry: enquiry);
+    _db.collection(ENQUIRIES).add(enquiryModel.toMap());
+  }
+
+  // return all depots
+  Future getDepots() async {
+    try {
+      var depotDocumentSnapShot = await _db.collection(DEPOTS).getDocuments();
+      if (depotDocumentSnapShot.documents.isNotEmpty) {
+        return depotDocumentSnapShot.documents
+            .map((snapshot) => Depot.fromMap(snapshot.data))
             .toList();
       }
     } catch (e) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:procurementapp/model/depot.dart';
 import 'package:procurementapp/model/item.dart';
 import 'package:procurementapp/model/site.dart';
 import 'package:procurementapp/model/supplier.dart';
@@ -23,14 +24,17 @@ class _NewOrderState extends State<NewOrder> {
   List<Site> sites = <Site>[];
   List<Supplier> suppliers = <Supplier>[];
   List<Item> items = <Item>[];
+  List<Depot> depots = <Depot>[];
   List<DropdownMenuItem<String>> sitesDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> itemsDropDown = <DropdownMenuItem<String>>[];
+  List<DropdownMenuItem<String>> depotsDropDown = <DropdownMenuItem<String>>[];
   List<DropdownMenuItem<String>> supplierDropDown =
       <DropdownMenuItem<String>>[];
 
   String currentSite;
   String currentSupplier;
   String currentItem;
+  String currentDepot;
   DateTime currentDate = DateTime.now();
   String status;
   double total = 0.0;
@@ -59,6 +63,7 @@ class _NewOrderState extends State<NewOrder> {
     getSuppliers();
     getSites();
     getItems();
+    getDepots();
 
     date = DateTime.now();
     _refeController.text = uuid.toString();
@@ -104,6 +109,21 @@ class _NewOrderState extends State<NewOrder> {
             DropdownMenuItem(
               child: Text(items[i].name),
               value: items[i].name,
+            ));
+      });
+    }
+    return list;
+  }
+
+  List<DropdownMenuItem<String>> getDepotsDropdown() {
+    List<DropdownMenuItem<String>> list = new List();
+    for (int i = 0; i < depots.length; i++) {
+      setState(() {
+        list.insert(
+            0,
+            DropdownMenuItem(
+              child: Text(depots[i].depotName),
+              value: depots[i].depotName,
             ));
       });
     }
@@ -211,6 +231,26 @@ class _NewOrderState extends State<NewOrder> {
                               border: OutlineInputBorder(
                                   borderSide:
                                       BorderSide(color: Colors.blueAccent)))),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: Row(
+                          children: <Widget>[
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: new Text(
+                                "Depot: ",
+                                style: TextStyle(
+                                    color: Colors.grey[700], fontSize: 16.0),
+                              ),
+                            ),
+                            DropdownButton(
+                              items: depotsDropDown,
+                              onChanged: changeSelectedDepot,
+                              value: currentDepot,
+                            ),
+                          ],
+                        ),
+                      ),
                       SizedBox(
                         height: 50.0,
                       ),
@@ -509,6 +549,16 @@ class _NewOrderState extends State<NewOrder> {
     });
   }
 
+  // get data of depots and assign to depots list then call dropdown
+  getDepots() async {
+    List<Depot> data = await serviceProvider.getDepots();
+    setState(() {
+      depots = data;
+      depotsDropDown = getDepotsDropdown();
+      currentDepot = depots[0].depotName;
+    });
+  }
+
   // change fields when selection happen in supplier dropdown
   changeSelectedSupplier(String selected) {
     setState(() {
@@ -544,11 +594,18 @@ class _NewOrderState extends State<NewOrder> {
       for (var i = 0; i < items.length; i++) {
         if (items[i].name == currentItem) {
           _unitController.text = items[i].price.toString();
-          total =
-          int.parse(_qtyController.text) * double.parse(_unitController.text);
+          total = int.parse(_qtyController.text) *
+              double.parse(_unitController.text);
           _totalController.text = total.toString();
         }
       }
+    });
+  }
+
+  // change fields when selection happen in depots dropdown
+  changeSelectedDepot(String selected) {
+    setState(() {
+      currentDepot = selected;
     });
   }
 
@@ -586,7 +643,8 @@ class _NewOrderState extends State<NewOrder> {
           comment: _commentController.text,
           status: status,
           remarks: null,
-          draft: false);
+          draft: false,
+          budget: total);
       _formKey.currentState.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order created");
@@ -617,7 +675,8 @@ class _NewOrderState extends State<NewOrder> {
           comment: _commentController.text,
           status: status,
           remarks: null,
-          draft: true);
+          draft: true,
+          budget: total);
       _formKey.currentState.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order saved");

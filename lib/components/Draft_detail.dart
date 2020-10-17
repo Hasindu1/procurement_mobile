@@ -614,7 +614,8 @@ class _DraftDetailsState extends State<DraftDetails> {
         comment: _commentController.text,
         status: status,
         remarks: null,
-        draft: false);
+        draft: false,
+        budget: total);
     Fluttertoast.showToast(msg: 'Order created!');
     changeScreenReplacement(context, Draft());
   }
