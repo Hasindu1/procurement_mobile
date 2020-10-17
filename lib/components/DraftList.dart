@@ -47,7 +47,6 @@ class _DraftListState extends State<DraftList> {
                               supplier: draft.supplier,
                               product: draft.product,
                               quantity: draft.quantity,
-                              total: draft.total,
                               unit: draft.unit,
                               rDate: draft.date.toLocal(),
                               description: draft.description,

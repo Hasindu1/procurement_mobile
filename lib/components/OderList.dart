@@ -61,17 +61,14 @@ class _OrderListState extends State<OrderList> {
           _debouncer.run(() {
             setState(() {
               if (_character == SingleCharacter.supplier) {
-                filteredOrders = orders
-                    .where((o) => o.supplier.contains((string)))
-                    .toList();
+                filteredOrders =
+                    orders.where((o) => o.supplier.contains((string))).toList();
               } else if (_character == SingleCharacter.site) {
-                filteredOrders = orders
-                    .where((o) => o.site.contains((string)))
-                    .toList();
+                filteredOrders =
+                    orders.where((o) => o.site.contains((string))).toList();
               } else if (_character == SingleCharacter.status) {
-                filteredOrders = orders
-                    .where((o) => o.status.contains((string)))
-                    .toList();
+                filteredOrders =
+                    orders.where((o) => o.status.contains((string))).toList();
               }
             });
           });
@@ -125,70 +122,70 @@ class _OrderListState extends State<OrderList> {
         child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: DataTable(
-              columns: [
-                DataColumn(
-                    label: Text(
-                  "Order Reference",
-                  style: TextStyle(fontSize: 15.0),
-                )),
-                DataColumn(
-                    label: Text(
-                  "Supplier",
-                  style: TextStyle(fontSize: 15.0),
-                )),
-                DataColumn(
-                    label: Text(
-                  "Site Manager",
-                  style: TextStyle(fontSize: 15.0),
-                )),
-                DataColumn(
-                    label: Text(
-                  "Order Status",
-                  style: TextStyle(fontSize: 15.0),
-                )),
-                DataColumn(
-                    label: Text(
-                  "View Order",
-                  style: TextStyle(fontSize: 15.0),
-                )),
-              ],
-              rows: filteredOrders != null ? filteredOrders
-                  .map((order) => DataRow(cells: [
-                        DataCell(Text(order.id)),
-                        DataCell(Text(order.supplier)),
-                        DataCell(Text(order.site)),
-                        DataCell(Text(order.status)),
-                        DataCell(Icon(Icons.remove_red_eye), onTap: () {
-                          changeScreen(
-                              context,
-                              OderDetails(
-                                orderId: order.id,
-                                site: order.site,
-                                supplier: order.supplier,
-                                status: order.status,
-                                product: order.product,
-                                quantity: order.quantity,
-                                unit: order.unit,
-                                total: order.total,
-                                rDate: order.date.toLocal(),
-                                description: order.description,
-                                comment: order.comment,
-                              ));
-                        }),
-                      ]))
-                  .toList()
-                  : []
-            )),
+                columns: [
+                  DataColumn(
+                      label: Text(
+                    "Order Reference",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    "Supplier",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    "Site Manager",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    "Order Status",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    "View Order",
+                    style: TextStyle(fontSize: 15.0),
+                  )),
+                ],
+                rows: filteredOrders != null
+                    ? filteredOrders
+                        .map((order) => DataRow(cells: [
+                              DataCell(Text(order.id)),
+                              DataCell(Text(order.supplier)),
+                              DataCell(Text(order.site)),
+                              DataCell(Text(order.status)),
+                              DataCell(Icon(Icons.remove_red_eye), onTap: () {
+                                changeScreen(
+                                    context,
+                                    OderDetails(
+                                      orderId: order.id,
+                                      site: order.site,
+                                      supplier: order.supplier,
+                                      status: order.status,
+                                      product: order.product,
+                                      quantity: order.quantity,
+                                      unit: order.unit,
+                                      rDate: order.date.toLocal(),
+                                      description: order.description,
+                                      comment: order.comment,
+                                    ));
+                              }),
+                            ]))
+                        .toList()
+                    : [])),
       ),
     ]);
   }
 
 //  return orders which draft is false
   void getOrders() async {
-    List<Order> data = await serviceProvider.getOrders();
-    setState(() {
-      orders = data;
-      filteredOrders = data;
+    serviceProvider.listenToOrdersRealTime().listen((orderData) {
+      setState(() {
+        orders = orderData;
+        filteredOrders = orders;
+      });
     });
   }
 }

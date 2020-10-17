@@ -505,7 +505,7 @@ class _NewOrderState extends State<NewOrder> {
       items = data;
       itemsDropDown = getItemsDropdown();
       currentItem = items[0].name;
-      _unitController.text = items[0].unit_price.toString();
+      _unitController.text = items[0].price.toString();
     });
   }
 
@@ -543,7 +543,10 @@ class _NewOrderState extends State<NewOrder> {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
         if (items[i].name == currentItem) {
-          _unitController.text = items[i].unit_price.toString();
+          _unitController.text = items[i].price.toString();
+          total =
+          int.parse(_qtyController.text) * double.parse(_unitController.text);
+          _totalController.text = total.toString();
         }
       }
     });
@@ -578,7 +581,6 @@ class _NewOrderState extends State<NewOrder> {
           product: currentItem,
           quantity: int.parse(_qtyController.text),
           unit: double.parse(_unitController.text),
-          total: double.parse(_totalController.text),
           date: currentDate,
           description: _descController.text,
           comment: _commentController.text,
@@ -610,7 +612,6 @@ class _NewOrderState extends State<NewOrder> {
           product: currentItem,
           quantity: int.parse(_qtyController.text),
           unit: double.parse(_unitController.text),
-          total: double.parse(_totalController.text),
           date: currentDate,
           description: _descController.text,
           comment: _commentController.text,

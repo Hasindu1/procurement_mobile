@@ -76,7 +76,6 @@ class _DraftDetailsState extends State<DraftDetails> {
   String dropdownValue;
   DateTime date;
   bool visibility = false;
-  bool calVisibility = false;
 
   final FocusNode _totalFocus = FocusNode();
   final FocusNode _unitFocus = FocusNode();
@@ -273,7 +272,6 @@ class _DraftDetailsState extends State<DraftDetails> {
                         onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _qtyFocus, _unitFocus);
                         },
-                        enabled: calVisibility,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                             labelText: 'Quantity',
@@ -293,7 +291,7 @@ class _DraftDetailsState extends State<DraftDetails> {
                       ),
                       TextFormField(
                         controller: _unitController,
-                        enabled: calVisibility,
+                        enabled: false,
                         focusNode: _unitFocus,
                         onFieldSubmitted: (term) {
                           _fieldFocusChange(context, _unitFocus, _totalFocus);
@@ -550,7 +548,9 @@ class _DraftDetailsState extends State<DraftDetails> {
     for (var i = 0; i < data.length; i++) {
       if (widget.product == data[i].name) {
         setState(() {
-          _unitController.text = data[i].unit_price.toString();
+          _unitController.text = data[i].price.toString();
+          total = data[i].price * widget.quantity;
+          _totalController.text = total.toString();
         });
       }
     }
@@ -588,7 +588,7 @@ class _DraftDetailsState extends State<DraftDetails> {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
         if (items[i].name == currentItem) {
-          _unitController.text = items[i].unit_price.toString();
+          _unitController.text = items[i].price.toString();
           total = int.parse(_qtyController.text) *
               double.parse(_unitController.text);
           _totalController.text = total.toString();
@@ -609,7 +609,6 @@ class _DraftDetailsState extends State<DraftDetails> {
         product: currentItem,
         quantity: int.parse(_qtyController.text),
         unit: double.parse(_unitController.text),
-        total: total,
         date: currentDate,
         description: _descriptionController.text,
         comment: _commentController.text,

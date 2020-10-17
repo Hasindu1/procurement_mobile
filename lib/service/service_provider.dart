@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
+import 'package:procurementapp/model/delivery.dart';
 import 'package:procurementapp/model/item.dart';
 import 'package:procurementapp/model/order.dart';
 import 'package:procurementapp/model/site.dart';
@@ -11,6 +14,8 @@ import 'package:procurementapp/util/common.dart';
  */
 class ServiceProvider {
   final _db = DBConnection.getConnection();
+  final StreamController<List<Order>> _streamController =
+      StreamController<List<Order>>.broadcast();
 
 //  return all items in database convert to a list
   Future getItems() async {
@@ -62,7 +67,6 @@ class ServiceProvider {
       @required String product,
       @required int quantity,
       @required double unit,
-      @required double total,
       @required DateTime date,
       @required String description,
       @required String comment,
@@ -76,32 +80,34 @@ class ServiceProvider {
         product: product,
         quantity: quantity,
         unit: unit,
-        total: total,
         date: date,
         description: description,
         comment: comment,
         status: status,
         remarks: remarks,
-        draft: draft);
+        draft: draft,
+        reason: null,
+        isCompleted: null,
+        budget: null);
     await _db.collection(ORDERS).document(id).setData(order.toMap());
   }
 
 //  return orders which are status is Pending, Approved or Rejected and draft is false
-  Future getOrders() async {
-    try {
-      var orderDocumentSnapShot = await _db
-          .collection(ORDERS)
-          .where(DRAFT, isEqualTo: false)
-          .where(STATUS,
-              whereIn: [PENDING, APPROVED, REJECTED]).getDocuments();
-      if (orderDocumentSnapShot.documents.isNotEmpty) {
-        return orderDocumentSnapShot.documents
-            .map((snapshot) => Order.fromMap(snapshot.data))
-            .toList();
-      }
-    } catch (e) {
-      print(e);
-    }
+  Stream listenToOrdersRealTime() {
+    _db
+        .collection(ORDERS)
+        .where(DRAFT, isEqualTo: false)
+        .where(STATUS, whereIn: [PENDING, APPROVED, REJECTED])
+        .snapshots()
+        .listen((orderSnapshot) {
+          if (orderSnapshot.documents.isNotEmpty) {
+            var orders = orderSnapshot.documents
+                .map((snapshot) => Order.fromMap(snapshot.data))
+                .toList();
+            _streamController.add(orders);
+          }
+        });
+    return _streamController.stream;
   }
 
 //  delete order document from database by document id
@@ -117,7 +123,6 @@ class ServiceProvider {
       @required String product,
       @required int quantity,
       @required double unit,
-      @required double total,
       @required DateTime date,
       @required String description,
       @required String comment,
@@ -131,14 +136,29 @@ class ServiceProvider {
         product: product,
         quantity: quantity,
         unit: unit,
-        total: total,
         date: date,
         description: description,
         comment: comment,
         status: status,
         remarks: remarks,
-        draft: draft);
+        draft: draft,
+        reason: null,
+        isCompleted: null,
+        budget: null);
     await _db.collection(ORDERS).document(order.id).updateData(order.toMap());
+  }
+
+  Future createDelivery(
+      {@required deliveryId,
+      @required orderRef,
+      @required item,
+      @required isPayed}) async {
+    Delivery delivery = new Delivery(
+        deliveryId: deliveryId,
+        orderRef: orderRef,
+        item: item,
+        isPayed: isPayed);
+    await _db.collection(DELIVERY).add(delivery.toMap());
   }
 
 //  return orders which are draft is true

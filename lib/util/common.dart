@@ -3,6 +3,7 @@ final String ORDERS = "orders";
 final String SITES = "sites";
 final String SUPPLIERS = "suppliers";
 final String ITEMS = "items";
+final String DELIVERY = "deliveries";
 
 //columns
 final String DRAFT = "draft";

@@ -8,6 +8,7 @@ import 'package:procurementapp/components/Drawer.dart';
 import 'package:procurementapp/pages/Home.dart';
 import 'package:procurementapp/service/service_provider.dart';
 import 'package:procurementapp/util/routes.dart';
+import 'package:uuid/uuid.dart';
 
 class OderDetails extends StatefulWidget {
   final String orderId;
@@ -17,7 +18,6 @@ class OderDetails extends StatefulWidget {
   final String product;
   final int quantity;
   final double unit;
-  final double total;
   final DateTime rDate;
   final String description;
   final String comment;
@@ -30,7 +30,6 @@ class OderDetails extends StatefulWidget {
       this.product,
       this.quantity,
       this.unit,
-      this.total,
       this.rDate,
       this.description,
       this.comment});
@@ -87,11 +86,10 @@ class _OderDetailsState extends State<OderDetails> {
     super.initState();
     _qtyController.text = widget.quantity.toString();
     _unitController.text = widget.unit.toString();
-    _totalController.text = widget.total.toString();
+    _totalController.text = (widget.quantity * widget.unit).toString();
     _descriptionController.text = widget.description;
     _commentController.text = widget.comment;
     currentDate = widget.rDate;
-    total = widget.total;
 
     getSites();
     getSuppliers();
@@ -445,23 +443,23 @@ class _OderDetailsState extends State<OderDetails> {
                           ),
                           Expanded(
                             child: IconButton(
-                              icon: Icon(
-                                Icons.calendar_today,
-                                size: 35.0,
-                                color: Colors.blue,
-                              ),
-                              onPressed: () {
-                                showDatePicker(
-                                        context: context,
-                                        initialDate: currentDate,
-                                        firstDate: DateTime(2020),
-                                        lastDate: DateTime(2033))
-                                    .then((date) {
-                                  setState(() {
-                                    currentDate = date;
+                                icon: Icon(
+                                  Icons.calendar_today,
+                                  size: 35.0,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () {
+                                  showDatePicker(
+                                          context: context,
+                                          initialDate: currentDate,
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2033))
+                                      .then((date) {
+                                    setState(() {
+                                      currentDate = date;
+                                    });
                                   });
-                                });
-                              }),
+                                }),
                           )
                         ],
                       ),
@@ -503,7 +501,8 @@ class _OderDetailsState extends State<OderDetails> {
                                 ),
                                 FlatButton(
                                     onPressed: () {
-                                      serviceProvider.deleteOrder(widget.orderId);
+                                      serviceProvider
+                                          .deleteOrder(widget.orderId);
                                       changeScreenReplacement(context, Home());
                                       Fluttertoast.showToast(
                                           msg: 'Order deleted!');
@@ -521,7 +520,8 @@ class _OderDetailsState extends State<OderDetails> {
                                   children: <Widget>[
                                     FlatButton(
                                         onPressed: () {
-                                          serviceProvider.deleteOrder(widget.orderId);
+                                          serviceProvider
+                                              .deleteOrder(widget.orderId);
                                           changeScreenReplacement(
                                               context, Home());
                                           Fluttertoast.showToast(
@@ -551,7 +551,8 @@ class _OderDetailsState extends State<OderDetails> {
                                     ),
                                     FlatButton(
                                         onPressed: () {
-                                          serviceProvider.deleteOrder(widget.orderId);
+                                          serviceProvider
+                                              .deleteOrder(widget.orderId);
                                           changeScreenReplacement(
                                               context, Home());
                                           Fluttertoast.showToast(
@@ -622,15 +623,6 @@ class _OderDetailsState extends State<OderDetails> {
       itemsDropDown = getItemDropdown();
       currentItem = widget.product;
     });
-
-    for (var i = 0; i < data.length; i++) {
-      if (widget.product == data[i].name) {
-        setState(() {
-          _unitController.text = data[i].unit_price.toString();
-        });
-        break;
-      }
-    }
   }
 
   // change fields when selection happen in supplier dropdown
@@ -669,8 +661,8 @@ class _OderDetailsState extends State<OderDetails> {
       currentItem = selected;
       for (var i = 0; i < items.length; i++) {
         if (items[i].name == currentItem) {
-          _unitController.text = items[i].unit_price.toString();
-          total = items[i].unit_price * int.parse(_qtyController.text);
+          _unitController.text = items[i].price.toString();
+          total = items[i].price * int.parse(_qtyController.text);
           _totalController.text = total.toString();
           break;
         }
@@ -681,7 +673,23 @@ class _OderDetailsState extends State<OderDetails> {
   // update details regarding to order
   void handleUpdate() async {
     if (_formKey.currentState.validate()) {
-      await serviceProvider.updateOrder(id: widget.orderId, site: currentSite, supplier: currentSupplier, product: currentItem, quantity: int.parse(_qtyController.text), unit: double.parse(_unitController.text), total: total, date: currentDate, description: _descriptionController.text, comment: _commentController.text, status: widget.status, remarks: null, draft: false);
+      String status = "Pending";
+      if (total < 100000) {
+        status = 'Approved';
+      }
+      await serviceProvider.updateOrder(
+          id: widget.orderId,
+          site: currentSite,
+          supplier: currentSupplier,
+          product: currentItem,
+          quantity: int.parse(_qtyController.text),
+          unit: double.parse(_unitController.text),
+          date: currentDate,
+          description: _descriptionController.text,
+          comment: _commentController.text,
+          status: status,
+          remarks: null,
+          draft: false);
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');
     }
@@ -691,7 +699,24 @@ class _OderDetailsState extends State<OderDetails> {
   void handlePlace() async {
     if (_formKey.currentState.validate()) {
       String status = 'Placed';
-      await serviceProvider.updateOrder(id: widget.orderId, site: currentSite, supplier: currentSupplier, product: currentItem, quantity: int.parse(_qtyController.text), unit: double.parse(_unitController.text), total: total, date: currentDate, description: _descriptionController.text, comment: _commentController.text, status: status, remarks: null, draft: false);
+      await serviceProvider.updateOrder(
+          id: widget.orderId,
+          site: currentSite,
+          supplier: currentSupplier,
+          product: currentItem,
+          quantity: int.parse(_qtyController.text),
+          unit: double.parse(_unitController.text),
+          date: currentDate,
+          description: _descriptionController.text,
+          comment: _commentController.text,
+          status: status,
+          remarks: null,
+          draft: false);
+      await serviceProvider.createDelivery(
+          deliveryId: Uuid().v1().toString(),
+          orderRef: widget.orderId,
+          item: currentItem,
+          isPayed: false);
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');
     }
@@ -702,7 +727,8 @@ class _OderDetailsState extends State<OderDetails> {
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
     currentFocus.unfocus();
     setState(() {
-      total = int.parse(_qtyController.text) * double.parse(_unitController.text);
+      total =
+          int.parse(_qtyController.text) * double.parse(_unitController.text);
       _totalController.text = total.toString();
     });
     FocusScope.of(context).requestFocus(nextFocus);
