@@ -200,7 +200,7 @@ class ServiceProvider {
 // create new Enquiry to order
   Future createEnquiry({@required String orderRef, @required enquiry}) async {
     Enquiry enquiryModel = new Enquiry(orderRef: orderRef, enquiry: enquiry);
-    _db.collection(ENQUIRIES).add(enquiryModel.toMap());
+    _db.collection(INQUIRIES).add(enquiryModel.toMap());
   }
 
   // return all depots
