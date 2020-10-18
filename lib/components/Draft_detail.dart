@@ -20,7 +20,7 @@ class DraftDetails extends StatefulWidget {
   final DateTime rDate;
   final String description;
   final String comment;
-  final bool draft;
+  final bool isCompleted;
 
   DraftDetails(
       {this.orderId,
@@ -33,7 +33,7 @@ class DraftDetails extends StatefulWidget {
       this.rDate,
       this.description,
       this.comment,
-      this.draft});
+      this.isCompleted});
 
   @override
   _DraftDetailsState createState() => _DraftDetailsState();
@@ -613,9 +613,8 @@ class _DraftDetailsState extends State<DraftDetails> {
         description: _descriptionController.text,
         comment: _commentController.text,
         status: status,
-        remarks: null,
-        draft: false,
-        budget: total);
+        budget: total,
+        isCompleted: false);
     Fluttertoast.showToast(msg: 'Order created!');
     changeScreenReplacement(context, Draft());
   }

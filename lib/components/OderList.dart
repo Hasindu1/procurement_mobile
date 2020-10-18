@@ -92,7 +92,7 @@ class _OrderListState extends State<OrderList> {
               ),
             ),
             ListTile(
-              title: const Text('Site Manager'),
+              title: const Text('Site'),
               leading: Radio(
                 value: SingleCharacter.site,
                 groupValue: _character,
@@ -136,7 +136,7 @@ class _OrderListState extends State<OrderList> {
                   )),
                   DataColumn(
                       label: Text(
-                    "Site Manager",
+                    "Site",
                     style: TextStyle(fontSize: 15.0),
                   )),
                   DataColumn(

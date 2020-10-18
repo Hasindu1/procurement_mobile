@@ -8,7 +8,7 @@ final String ENQUIRIES = "enquiries";
 final String DEPOTS = "depots";
 
 //columns
-final String DRAFT = "draft";
+final String IS_COMPLETED = "isCompleted";
 final String STATUS = "status";
 
 //status

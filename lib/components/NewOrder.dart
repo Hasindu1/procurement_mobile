@@ -528,6 +528,7 @@ class _NewOrderState extends State<NewOrder> {
   // get data of sites and assign to sites list and call dropdown
   getSites() async {
     List<Site> data = await serviceProvider.getSites();
+    print(data[0].name);
     setState(() {
       sites = data;
       sitesDropDown = getSiteDropdown();
@@ -642,9 +643,8 @@ class _NewOrderState extends State<NewOrder> {
           description: _descController.text,
           comment: _commentController.text,
           status: status,
-          remarks: null,
-          draft: false,
-          budget: total);
+          budget: total,
+          isCompleted: false);
       _formKey.currentState.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order created");
@@ -674,9 +674,8 @@ class _NewOrderState extends State<NewOrder> {
           description: _descController.text,
           comment: _commentController.text,
           status: status,
-          remarks: null,
-          draft: true,
-          budget: total);
+          budget: total,
+          isCompleted: true);
       _formKey.currentState.reset();
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: "Order saved");

@@ -688,9 +688,8 @@ class _OderDetailsState extends State<OderDetails> {
           description: _descriptionController.text,
           comment: _commentController.text,
           status: status,
-          remarks: null,
-          draft: false,
-          budget: total);
+          budget: total,
+          isCompleted: false);
       changeScreenReplacement(context, Home());
       Fluttertoast.showToast(msg: 'Order updated!');
     }
@@ -711,9 +710,8 @@ class _OderDetailsState extends State<OderDetails> {
           description: _descriptionController.text,
           comment: _commentController.text,
           status: status,
-          remarks: null,
-          draft: false,
-          budget: total);
+          budget: total,
+          isCompleted: false);
       await serviceProvider.createDelivery(
           deliveryId: Uuid().v1().toString(),
           orderRef: widget.orderId,

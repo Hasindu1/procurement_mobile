@@ -73,9 +73,8 @@ class ServiceProvider {
       @required String description,
       @required String comment,
       @required String status,
-      @required String remarks,
-      @required bool draft,
-      @required double budget}) async {
+      @required double budget,
+      @required bool isCompleted}) async {
     Order order = new Order(
         id: id,
         site: site,
@@ -87,10 +86,8 @@ class ServiceProvider {
         description: description,
         comment: comment,
         status: status,
-        remarks: remarks,
-        draft: draft,
         reason: null,
-        isCompleted: null,
+        isCompleted: isCompleted,
         budget: budget);
     await _db.collection(ORDERS).document(id).setData(order.toMap());
   }
@@ -99,7 +96,7 @@ class ServiceProvider {
   Stream listenToOrdersRealTime() {
     _db
         .collection(ORDERS)
-        .where(DRAFT, isEqualTo: false)
+        .where(IS_COMPLETED, isEqualTo: false)
         .where(STATUS, whereIn: [PENDING, APPROVED, REJECTED])
         .snapshots()
         .listen((orderSnapshot) {
@@ -130,8 +127,7 @@ class ServiceProvider {
       @required String description,
       @required String comment,
       @required String status,
-      @required String remarks,
-      @required bool draft,
+      @required bool isCompleted,
       @required double budget}) async {
     Order order = new Order(
         id: id,
@@ -144,11 +140,9 @@ class ServiceProvider {
         description: description,
         comment: comment,
         status: status,
-        remarks: remarks,
-        draft: draft,
         reason: null,
-        isCompleted: null,
-        budget: budget);
+        isCompleted: isCompleted,
+        budget: budget,);
     await _db.collection(ORDERS).document(order.id).updateData(order.toMap());
   }
 
@@ -174,7 +168,7 @@ class ServiceProvider {
     try {
       var siteDocumentSnapShot = await _db
           .collection(ORDERS)
-          .where(DRAFT, isEqualTo: true)
+          .where(IS_COMPLETED, isEqualTo: true)
           .getDocuments();
       if (siteDocumentSnapShot.documents.isNotEmpty) {
         return siteDocumentSnapShot.documents

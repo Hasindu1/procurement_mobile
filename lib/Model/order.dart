@@ -11,8 +11,6 @@ class Order {
   final String description;
   final String comment;
   final String status;
-  final String remarks;
-  final bool draft;
   final String reason;
   final bool isCompleted;
   final double budget;
@@ -28,8 +26,6 @@ class Order {
       @required this.description,
       @required this.comment,
       @required this.status,
-      @required this.remarks,
-      @required this.draft,
       @required this.reason,
       @required this.isCompleted,
       @required this.budget});
@@ -46,8 +42,6 @@ class Order {
       'description': description,
       'comment': comment,
       'status': status,
-      'remarks': remarks,
-      'draft': draft,
       'reason': reason,
       'isCompleted': isCompleted,
       'budget': budget
@@ -68,8 +62,6 @@ class Order {
         description: map['description'],
         comment: map['comment'],
         status: map['status'],
-        remarks: map['remarks'],
-        draft: map['draft'],
         reason: map['reason'],
         isCompleted: map['isCompleted'],
         budget: map['budget']);

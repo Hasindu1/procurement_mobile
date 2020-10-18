@@ -51,7 +51,7 @@ class _DraftListState extends State<DraftList> {
                               rDate: draft.date.toLocal(),
                               description: draft.description,
                               comment: draft.comment,
-                              draft: draft.draft,
+                              isCompleted: draft.isCompleted,
                             ));
                       })
                     ]))
