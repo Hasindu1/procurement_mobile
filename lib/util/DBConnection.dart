@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class DBConnection {
   static Firestore _db;
 
+  DBConnection._();
+
   /*  return Firestore.instance if object is not null
     otherwise create instance and return
    */
